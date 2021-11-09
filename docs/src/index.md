@@ -7,6 +7,7 @@ CurrentModule = NOVAS
 Documentation for [NOVAS](https://github.com/kiranshila/NOVAS.jl).
 
 ```@index
+
 ```
 
 ```@autodocs
