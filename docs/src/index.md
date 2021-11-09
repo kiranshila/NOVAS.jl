@@ -12,4 +12,6 @@ Documentation for [NOVAS](https://github.com/kiranshila/NOVAS.jl).
 
 ```@autodocs
 Modules = [NOVAS]
+Order = [:function,:type]
+Private = false
 ```
