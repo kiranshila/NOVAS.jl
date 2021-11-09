@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+NOVAS = "e618f0cf-9996-4d7a-81fa-69b2aebd0c83"
