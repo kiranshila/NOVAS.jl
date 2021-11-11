@@ -5,9 +5,9 @@ const C = 299792458.0
 # Light-time for one astronomical unit (AU) in seconds, from DE-405.
 const AU_SEC = 499.0047838061
 # Speed of light in AU/day.  Value is 86400 / AU_SEC.
-const C_AUDAY = 86400/AU_SEC
+const C_AUDAY = 86400 / AU_SEC
 # Astronomical unit in meters.  Value is AU_SEC * C.
-const AU = AU_SEC*C
+const AU = AU_SEC * C
 # Astronomical Unit in kilometers.
 const AU_KM = 1.4959787069098932e+8
 # Heliocentric gravitational constant in meters^3 / second^2, from
@@ -20,7 +20,7 @@ const GE = 3.98600433e+14
 const ERAD = 6378136.6
 # Earth ellipsoid flattening from IERS Conventions (2003).
 # Value is 1 / 298.25642.
-const F = 1/298.25642
+const F = 1 / 298.25642
 # Rotational angular velocity of Earth in radians/sec from IERS
 # Conventions (2003).
 const ANGVEL = 7.2921150e-5
@@ -43,6 +43,6 @@ const xi0  = -0.0166170 * ASEC2RAD
 const eta0 = -0.0068192 * ASEC2RAD
 const da0  = -0.01460   * ASEC2RAD
 
-const frame_tie_rot = [1-0.5(da0^2+xi0^2)        -da0                xi0;
-                               da0        1-0.5(da0^2+eta0^2)        eta0;
-                              -xi0               -eta0        1-0.5(eta0^2+xi0^2)]
+const frame_tie_rot = [1 - 0.5(da0^2 + xi0^2)        -da0                xi0;
+                               da0        1 - 0.5(da0^2 + eta0^2)        eta0;
+                              -xi0               -eta0        1 - 0.5(eta0^2 + xi0^2)]
