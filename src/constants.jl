@@ -37,3 +37,12 @@ const ASEC360 = 1296000.0
 const ASEC2RAD = 4.848136811095359935899141e-6
 const DEG2RAD = 0.017453292519943296
 const RAD2DEG = 57.295779513082321
+
+# "Computed" constants from novas.c
+const xi0  = -0.0166170 * ASEC2RAD
+const eta0 = -0.0068192 * ASEC2RAD
+const da0  = -0.01460   * ASEC2RAD
+
+const frame_tie_rot = [1-0.5(da0^2+xi0^2)        -da0                xi0;
+                               da0        1-0.5(da0^2+eta0^2)        eta0;
+                              -xi0               -eta0        1-0.5(eta0^2+xi0^2)]
