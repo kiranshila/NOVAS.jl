@@ -1,6 +1,7 @@
 module NOVAS
 
 include("constants.jl")
+include("nutation.jl")
 using LinearAlgebra
 
 # Argument Enums
@@ -12,12 +13,47 @@ using LinearAlgebra
 @enum FrameTieDirection dynamic2icrs icrs2dynamic
 
 """
+    nutation_angles(t)
+
+Computes the values for nutation in longitude and nutation in obliquity for a given TDB julian date.
+
+# Aruments
+- `jd_tdb::Real`: TDB time in Julian centuries since J2000.0
+
+# Optional Arguments
+- `accuracy::Accuracy=full`: Sets the accuracy level of `full` or `reduced`
+
+# Returns
+`(dpsi,deps)` where
+- `dpsi`: Nutation in longitude in arcseconds
+- `deps`: Nutation in obliquity in arcseconds
+"""
+function nutation_angles(t::Real;accuracy::Accuracy=full)
+    t1 = t * 36525.0
+    # High accuracy mode uses IAU 200A
+    if accuracy == full
+        dpsi,deps = iau200a(T0,t1)
+    else
+        # Low accuracy mode uses the specially truncated version of IAU 2000A, called
+        # NU200K
+        dpsi,deps = nu200k(T0,t1,)
+    end
+    # Convert output to arcseconds
+    dpsi /= ASEC2RAD
+    deps /= ASEC2RAD
+    # Return
+    return (dpsi,deps)
+end
+
+"""
     e_tilt(jd_tdb)
 
 Computes quantities related to the orientation of the Earth's rotation axis at Julian date `jd_tdb`
 
 # Arguments
 - `jd_tdb::Real`: TDB Julian Date
+
+# Optional Arguments
 - `accuracy::Accuracy=full`: Sets the accuracy level of `full` or `reduced`
 
 # Returns
@@ -28,10 +64,26 @@ Computes quantities related to the orientation of the Earth's rotation axis at J
 - `dpsi`: Nutation in longitude on arcseconds
 - `deps`: Nutation in obliquity in arcseconds
 """
-# FIXME
 function e_tilt(jd_tdb::Real;accuracy::Accuracy=full)
     # Compute time in Julian centuries from epoch J2000.0
     t = (jd_tdb - T0) / 36525.0
+    # Compute the nutation angles
+    dp,de = nutation_angles(t;accuracy=accuracy)
+    c_terms = ee_ct(jd,tdb,0.0;accuracy=accuracy) / ASEC2RAD
+    # Compute mean obliquity of the ecliptic in arcseconds
+    d_psi = dp + PSI_COR
+    d_eps = de + EPS_COR
+    # Compute mean and true obliquity
+    mean_ob = mean_obliq(jd_tdb)
+    true_ob = mean_ob + d_eps
+    # Convert obliquity values to degrees
+    mean_ob /= 3600.0
+    true_ob /= 3600.0
+    # Compute equation of the equinoxes in seconds
+    eq_eq = d_psi * cosd(mean_ob) + c_terms
+    eq_eq /= 15.0
+    # Return computed result
+    return (mean_ob,true_ob,eq_eq,d_psi,d_eps)
 end
 
 """
@@ -322,6 +374,14 @@ end
 # Enum Exports
 export GSTType,SiderealMethod,Accuracy,EquinoxType, FrameTieDirection
 # Function exports
-export sidereal_time,tdb2tt,era,e_tilt,ira_equinox,nutation,precession,frame_tie,cio_location,cio_basis
-
+export sidereal_time,
+    tdb2tt,
+    era,
+    e_tilt,
+    ira_equinox,
+    nutation,
+    precession,
+    frame_tie,
+    cio_location,
+    cio_basis
 end
