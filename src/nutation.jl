@@ -50,8 +50,24 @@ function iau2000a_statics()
     return nals, cls, napl, cpl
 end
 
+"""
+    read_nu2000k()
+
+Reads the included nu2000k nutation model into a Matrix and returns them as
+`(planetary_nutations,lunisolar_nutations)`. This is meant to be a high-level interface for
+working with the nu2000k data.
+"""
+function read_nu2000k()
+    napl = readdlm("data/nu2000k_napl.csv",',')
+    nals = readdlm("data/nu2000k_nals.csv",',')
+    cpl = readdlm("data/nu2000k_cpl.csv",',')
+    cls = readdlm("data/nu2000k_cls.csv",',')
+    return nals, cls, napl, cpl
+end
+
 # Keep these around
-const nals, cls, napl, cpl = iau2000a_statics()
+const nals_a, cls_a, napl_a, cpl_a = iau2000a_statics()
+const nals_k, cls_k, napl_k, cpl_k = read_nu2000k()
 
 """
     iau2000a(jd)
@@ -77,15 +93,15 @@ function iau2000a(jd_high::Real, jd_low::Real=0.0)
     Δϕ_ls = 0.0
     Δε_ls = 0.0
 
-    @inbounds @simd for i in 1:size(nals)[1]
-        arg = nals[i,1] * a[1]  +
-              nals[i,2] * a[2]  +
-              nals[i,3] * a[3]  +
-              nals[i,4] * a[4]  +
-              nals[i,5] * a[5] 
+    @inbounds @simd for i in 1:size(nals_a)[1]
+        arg = nals_a[i,1] * a[1]  +
+              nals_a[i,2] * a[2]  +
+              nals_a[i,3] * a[3]  +
+              nals_a[i,4] * a[4]  +
+              nals_a[i,5] * a[5] 
         sarg, carg = sincos(arg)
-        Δϕ_ls += (cls[i,1] + cls[i,2] * t) * sarg + cls[i,3] * carg;
-        Δε_ls += (cls[i,4] + cls[i,5] * t) * carg + cls[i,6] * sarg;
+        Δϕ_ls += (cls_a[i,1] + cls_a[i,2] * t) * sarg + cls_a[i,3] * carg
+        Δε_ls += (cls_a[i,4] + cls_a[i,5] * t) * carg + cls_a[i,6] * sarg
     end
 
     # Mean anomaly of the Moon.
@@ -113,24 +129,24 @@ function iau2000a(jd_high::Real, jd_low::Real=0.0)
     Δϕ_pl = 0.0
     Δε_pl = 0.0
 
-    @inbounds @simd for i ∈ 1:size(napl)[1]
-        arg = napl[i,1] * al    +
-            napl[i,2] * alsu  +
-            napl[i,3] * af    +
-            napl[i,4] * ad    +
-            napl[i,5] * aom   +
-            napl[i,6] * alme  +
-            napl[i,7] * alve  +
-            napl[i,8] * alea  +
-            napl[i,9] * alma  +
-            napl[i,10] * alju  +
-            napl[i,11] * alsa  +
-            napl[i,12] * alur  +
-            napl[i,13] * alne  +
-            napl[i,14] * apa
+    @inbounds @simd for i ∈ 1:size(napl_a)[1]
+        arg = napl_a[i,1]  * al    +
+              napl_a[i,2]  * alsu  +
+              napl_a[i,3]  * af    +
+              napl_a[i,4]  * ad    +
+              napl_a[i,5]  * aom   +
+              napl_a[i,6]  * alme  +
+              napl_a[i,7]  * alve  +
+              napl_a[i,8]  * alea  +
+              napl_a[i,9]  * alma  +
+              napl_a[i,10] * alju  +
+              napl_a[i,11] * alsa  +
+              napl_a[i,12] * alur  +
+              napl_a[i,13] * alne  +
+              napl_a[i,14] * apa
         sarg, carg = sincos(arg)
-        Δϕ_pl += cpl[i,1] * sarg + cpl[i,2] * carg;
-        Δε_pl += cpl[i,3] * sarg + cpl[i,4] * carg;
+        Δϕ_pl += cpl_a[i,1] * sarg + cpl_a[i,2] * carg
+        Δε_pl += cpl_a[i,3] * sarg + cpl_a[i,4] * carg
     end
 
     # Scale Results
@@ -140,4 +156,84 @@ function iau2000a(jd_high::Real, jd_low::Real=0.0)
     return (Δϕ_ls + Δϕ_pl, Δε_ls + Δε_pl) .* scaling_factor
 end
 
-export read_iau2000a,iau2000a,fund_args
+
+"""
+    nu2000k(jd)
+
+Compute the forced nutation of the non-rigid earth based on the NU2000K nutation model.
+
+# Arguments
+-`jd_high::Real`: High order part of the TT Julian date
+-`jd_low::Real=0.0`: Low order part of the TT Julian date
+
+# Return
+`(dpsi,deps)` where
+-`dpsi`: Nutation (luni-solar + planetary) in longitude, in radians
+-`deps`: Nutation (luni-solar + planetary) in obliquity, in radians
+"""
+function nu2000k(jd_high::Real, jd_low::Real=0.0)
+    # Interval between fundamental epoch J2000.0 and given date
+    t = ((jd_high - T0) + jd_low) / 36525.0
+
+    # Compute fundamental arguments in radians
+    a = fund_args(t)
+
+    Δϕ_ls = 0.0
+    Δε_ls = 0.0
+
+    @inbounds @simd for i in 1:size(nals_k)[1]
+        arg = nals_k[i,1] * a[1]  +
+              nals_k[i,2] * a[2]  +
+              nals_k[i,3] * a[3]  +
+              nals_k[i,4] * a[4] + 
+              nals_k[i,5] * a[5]
+        sarg, carg = sincos(arg)
+        Δϕ_ls += (cls_k[i,1] + cls_k[i,2] * t) * sarg + cls_k[i,3] * carg
+        Δε_ls += (cls_k[i,4] + cls_k[i,5] * t) * carg + cls_k[i,6] * sarg
+    end
+
+    # Planetary longitudes, Mercury through Neptune, wrt mean dynamical
+    # ecliptic and equinox of J2000, with high order terms omitted
+    # (Simon et al. 1994, 5.8.1-5.8.8).
+    alme = mod2pi(4.402608842461 + 2608.790314157421 * t)
+    alve = mod2pi(3.176146696956 + 1021.328554621099 * t)
+    alea = mod2pi(1.753470459496 +  628.307584999142 * t)
+    alma = mod2pi(6.203476112911 +  334.061242669982 * t)
+    alju = mod2pi(0.599547105074 +   52.969096264064 * t)
+    alsa = mod2pi(0.874016284019 +   21.329910496032 * t)
+    alur = mod2pi(5.481293871537 +    7.478159856729 * t)
+    alne = mod2pi(5.311886286677 +    3.813303563778 * t)
+    # General precession in longitude (Simon et al. 1994), equivalent to 5028.8200 arcsec/cy at J2000.
+    apa = (0.024380407358 + 0.000005391235 * t) * t
+
+    Δϕ_pl = 0.0
+    Δε_pl = 0.0
+
+    @inbounds @simd for i ∈ 1:size(napl_k)[1]
+        arg = napl_k[i,1]  * a[1] +
+              napl_k[i,2]  * a[2] +
+              napl_k[i,3]  * a[3] +
+              napl_k[i,4]  * a[4] +
+              napl_k[i,5]  * a[5] +
+              napl_k[i,6]  * alme +
+              napl_k[i,7]  * alve +
+              napl_k[i,8]  * alea +
+              napl_k[i,9]  * alma +
+              napl_k[i,10] * alju +
+              napl_k[i,11] * alsa +
+              napl_k[i,12] * alur +
+              napl_k[i,13] * alne +
+              napl_k[i,14] * apa
+        sarg, carg = sincos(arg)
+        Δϕ_pl += cpl_k[i,1] * sarg + cpl_k[i,2] * carg;
+        Δε_pl += cpl_k[i,3] * sarg + cpl_k[i,4] * carg;
+    end
+
+    # Scale Results
+    scaling_factor = 1.0e-7 * ASEC2RAD
+    
+    # Return result!
+    return (Δϕ_ls + Δϕ_pl, Δε_ls + Δε_pl) .* scaling_factor
+end
+
+export read_iau2000a,read_nu2000k,iau2000a,nu2000k,fund_args

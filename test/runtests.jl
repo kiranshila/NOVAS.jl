@@ -13,6 +13,7 @@ include("wrapper.jl")
     jd_high = rand()*1e6 |> round
     jd_low = rand()
     # Test nutation conversions
+    @test nu2000k(jd_high,jd_low) ≈ NOVAS.nu2000k(jd_high,jd_low) atol=eps(Float64)
     @test iau2000a(jd_high,jd_low) ≈ NOVAS.iau2000a(jd_high,jd_low) atol=eps(Float64)
 end
 

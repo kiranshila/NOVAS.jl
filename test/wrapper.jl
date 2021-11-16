@@ -18,3 +18,13 @@ function iau2000a(jd_high::Float64,jd_low::Float64)
           jd_high,jd_low,dpsi,deps)
     return dpsi[],deps[]
 end
+
+function nu2000k(jd_high::Float64,jd_low::Float64)
+    dpsi = Ref{Cdouble}(0.0)
+    deps = Ref{Cdouble}(0.0)
+    ccall((:nu2000k,libnovas),
+          Cvoid,
+          (Cdouble,Cdouble,Ref{Cdouble},Ref{Cdouble}),
+          jd_high,jd_low,dpsi,deps)
+    return dpsi[],deps[]
+end
