@@ -62,20 +62,20 @@ const napl = napl_df |> Matrix
 const cpl = (cpl_df |> Matrix) .* 1e4
 
 """
-    iau2000a(jd_high,jd_low)
+    iau2000a(jd)
 
 Compute the forced nutation of the non-rigid earth based on the IAU 2000A nutation model.
 
 # Arguments
 -`jd_high::Real`: High order part of the TT Julian date
--`jd_low::Real`: Low order part of the TT Julian date
+-`jd_low::Real=0.0`: Low order part of the TT Julian date
 
 # Return
 `(dpsi,deps)` where
 -`dpsi`: Nutation (luni-solar + planetary) in longitude, in radians
 -`deps`: Nutation (luni-solar + planetary) in obliquity, in radians
 """
-function iau2000a(jd_high::Real, jd_low::Real)
+function iau2000a(jd_high::Real, jd_low::Real=0.0)
     # Interval between fundamental epoch J2000.0 and given date
     t = ((jd_high - T0) + jd_low) / 36525.0
 
@@ -148,4 +148,4 @@ function iau2000a(jd_high::Real, jd_low::Real)
     return (Δϕ_ls + Δϕ_pl, Δε_ls + Δε_pl) .* scaling_factor
 end
 
-export read_iau2000a,iau2000a, fund_args,iau2000a_statics
+export read_iau2000a,iau2000a,fund_args

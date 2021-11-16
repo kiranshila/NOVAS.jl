@@ -18,7 +18,7 @@ using LinearAlgebra
 Computes the values for nutation in longitude and nutation in obliquity for a given TDB julian date.
 
 # Aruments
-- `jd_tdb::Real`: TDB time in Julian centuries since J2000.0
+- `t::Real`: TDB time in Julian centuries since J2000.0
 
 # Optional Arguments
 - `accuracy::Accuracy=full`: Sets the accuracy level of `full` or `reduced`
@@ -32,11 +32,11 @@ function nutation_angles(t::Real;accuracy::Accuracy=full)
     t1 = t * 36525.0
     # High accuracy mode uses IAU 200A
     if accuracy == full
-        dpsi,deps = iau200a(T0,t1)
+        dpsi,deps = iau2000a(T0,t1)
     else
         # Low accuracy mode uses the specially truncated version of IAU 2000A, called
         # NU200K
-        dpsi,deps = nu200k(T0,t1,)
+        dpsi,deps = nu2000k(T0,t1)
     end
     # Convert output to arcseconds
     dpsi /= ASEC2RAD
@@ -380,6 +380,7 @@ export sidereal_time,
     e_tilt,
     ira_equinox,
     nutation,
+    nutation_angles,
     precession,
     frame_tie,
     cio_location,
