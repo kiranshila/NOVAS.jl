@@ -1,4 +1,4 @@
-using DelimitedFiles,DataFrames, Memoize, StaticArrays, LoopVectorization
+using DelimitedFiles
 
 include("utils.jl")
 
@@ -24,42 +24,34 @@ function fund_args(t::Real)
     F  = 335779.526232 + t * (1739527262.8478 + t * (-12.7512 + t * (-0.001037 + t * (0.00000417))))
     D  = 1072260.70369 + t * (1602961601.2090 + t * (-6.3706 + t * (0.006593 + t * (-0.00003169))))
     Ω  = 450160.398036 + t * (-6962890.5431 + t * (7.4722 + t * (0.007702 + t * (-0.00005939))))
-    return mod.([l, l′, F, D, Ω],ASEC360) .* ASEC2RAD
+    return mod.([l, l′, F, D, Ω], ASEC360) .* ASEC2RAD
 end
 
 """
     read_iau2000a()
 
-Reads the included iau2000a nutation model into a DataFrame and returns them as
+Reads the included iau2000a nutation model into a Matrix and returns them as
 `(planetary_nutations,lunisolar_nutations)`. This is meant to be a high-level interface for
 working with the iau2000a data.
 """
 function read_iau2000a()
     # Read planetary nutation terms
-    lunisolar_nutations = DataFrame(readdlm("data/tab5.3a.txt";comment_char='*',comments=true)[1:678,:],
-                                    [:l,:l′,:F,:D,:Ω,:Period,:A,:A′,:B,:B′,:A″,:A‴,:B″,:B‴])
-    planetary_nutations = DataFrame(readdlm("data/tab5.3b.txt";skipstart=5),
-                                    [:term,:l,:l′,:F,:D,:Ω,
-                                    :Me,:Ve,:E,:Ma,:J,:Sa,:U,:Ne,:pA,
-                                    :Period,:A,:A″,:B,:B″,:amplitude])
-    return (planetary_nutations, lunisolar_nutations)
+    ls_data = readdlm("data/tab5.3a.txt";comment_char='*',comments=true)[1:678,:]
+    pl_data = readdlm("data/tab5.3b.txt";skipstart=5)
+    return (pl_data, ls_data)
 end
 
 function iau2000a_statics()
     planetary, lunisolar = read_iau2000a()
-    nals = lunisolar[:,[:l,:l′,:F,:D,:Ω]]
-    cls = lunisolar[:,[:A, :A′, :A″, :B, :B′, :B″]] 
-    napl = planetary[:,[:l, :l′, :F, :D, :Ω, :Me, :Ve, :E, :Ma, :J, :Sa, :U, :Ne, :pA]]
-    cpl = planetary[:,[:A, :A″, :B, :B″]]
+    nals = lunisolar[:,1:5]                     # [:l,:l′,:F,:D,:Ω]
+    cls = lunisolar[:,[7,8,11,9,10,13]] .* 1e4  # [:A, :A′, :A″, :B, :B′, :B″]
+    napl = planetary[:,2:15]                    # [:l, :l′, :F, :D, :Ω, :Me, :Ve, :E, :Ma, :J, :Sa, :U, :Ne, :pA]
+    cpl = planetary[:,17:20] .* 1e4             # [:A, :A″, :B, :B″]
     return nals, cls, napl, cpl
 end
 
-# Create our static, constant matricies for use in iau2000a
-nals_df, cls_df, napl_df, cpl_df = iau2000a_statics()
-const nals = nals_df |> Matrix
-const cls = (cls_df |> Matrix) .* 1e4
-const napl = napl_df |> Matrix
-const cpl = (cpl_df |> Matrix) .* 1e4
+# Keep these around
+const nals, cls, napl, cpl = iau2000a_statics()
 
 """
     iau2000a(jd)
@@ -90,33 +82,33 @@ function iau2000a(jd_high::Real, jd_low::Real=0.0)
               nals[i,2] * a[2]  +
               nals[i,3] * a[3]  +
               nals[i,4] * a[4]  +
-              nals[i,5] * a[5]
-        sarg,carg = sincos(arg)
+              nals[i,5] * a[5] 
+        sarg, carg = sincos(arg)
         Δϕ_ls += (cls[i,1] + cls[i,2] * t) * sarg + cls[i,3] * carg;
         Δε_ls += (cls[i,4] + cls[i,5] * t) * carg + cls[i,6] * sarg;
     end
 
     # Mean anomaly of the Moon.
-    al = mod(2.35555598 + 8328.6914269554 * t, 2π)
+    al = mod2pi(2.35555598 + 8328.6914269554 * t)
     # Mean anomaly of the Sun.
-    alsu = mod(6.24006013 + 628.301955 * t, 2π)
+    alsu = mod2pi(6.24006013 + 628.301955 * t)
     #  Mean argument of the latitude of the Moon.
-    af = mod(1.627905234 + 8433.466158131 * t, 2π)
+    af = mod2pi(1.627905234 + 8433.466158131 * t)
     #  Mean elongation of the Moon from the Sun.
-    ad = mod(5.198466741 + 7771.3771468121 * t, 2π)
+    ad = mod2pi(5.198466741 + 7771.3771468121 * t)
     # Mean longitude of the ascending node of the Moon.
-    aom = mod(2.18243920 - 33.757045 * t, 2π)
+    aom = mod2pi(2.18243920 - 33.757045 * t)
     # General accumulated precession in longitude.
     apa = (0.02438175 + 0.00000538691 * t) * t
     # Planetary longitudes, Mercury through Neptune (Souchay et al. 1999).
-    alme = mod(4.402608842 + 2608.7903141574 * t, 2π)
-    alve = mod(3.176146697 + 1021.3285546211 * t, 2π)
-    alea = mod(1.753470314 +  628.3075849991 * t, 2π)
-    alma = mod(6.203480913 +  334.0612426700 * t, 2π)
-    alju = mod(0.599546497 +   52.9690962641 * t, 2π)
-    alsa = mod(0.874016757 +   21.3299104960 * t, 2π)
-    alur = mod(5.481293871 +    7.4781598567 * t, 2π)
-    alne = mod(5.321159000 +    3.8127774000 * t, 2π)
+    alme = mod2pi(4.402608842 + 2608.7903141574 * t)
+    alve = mod2pi(3.176146697 + 1021.3285546211 * t)
+    alea = mod2pi(1.753470314 +  628.3075849991 * t)
+    alma = mod2pi(6.203480913 +  334.0612426700 * t)
+    alju = mod2pi(0.599546497 +   52.9690962641 * t)
+    alsa = mod2pi(0.874016757 +   21.3299104960 * t)
+    alur = mod2pi(5.481293871 +    7.4781598567 * t)
+    alne = mod2pi(5.321159000 +    3.8127774000 * t)
 
     Δϕ_pl = 0.0
     Δε_pl = 0.0
@@ -136,7 +128,7 @@ function iau2000a(jd_high::Real, jd_low::Real=0.0)
             napl[i,12] * alur  +
             napl[i,13] * alne  +
             napl[i,14] * apa
-        sarg,carg = sincos(arg)
+        sarg, carg = sincos(arg)
         Δϕ_pl += cpl[i,1] * sarg + cpl[i,2] * carg;
         Δε_pl += cpl[i,3] * sarg + cpl[i,4] * carg;
     end
