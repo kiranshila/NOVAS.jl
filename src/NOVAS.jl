@@ -1,7 +1,10 @@
 module NOVAS
 
+# Local Imports
 include("constants.jl")
 include("nutation.jl")
+
+# Library Imports
 using LinearAlgebra
 
 # Argument Enums
@@ -34,8 +37,7 @@ function nutation_angles(t::Real;accuracy::Accuracy=full)
     if accuracy == full
         dpsi,deps = iau2000a(T0,t1)
     else
-        # Low accuracy mode uses the specially truncated version of IAU 2000A, called
-        # NU200K
+        # Low accuracy mode uses the specially truncated version of IAU 2000A, called NU200K
         dpsi,deps = nu2000k(T0,t1)
     end
     # Convert output to arcseconds
