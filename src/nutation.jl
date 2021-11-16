@@ -85,7 +85,7 @@ function iau2000a(jd_high::Real, jd_low::Real)
     Δϕ_ls = 0.0
     Δε_ls = 0.0
 
-    @turbo for i in 1:size(nals)[1]
+    @inbounds @simd for i in 1:size(nals)[1]
         arg = nals[i,1] * a[1]  +
               nals[i,2] * a[2]  +
               nals[i,3] * a[3]  +
@@ -121,7 +121,7 @@ function iau2000a(jd_high::Real, jd_low::Real)
     Δϕ_pl = 0.0
     Δε_pl = 0.0
 
-    @turbo for i ∈ 1:size(napl)[1]
+    @inbounds @simd for i ∈ 1:size(napl)[1]
         arg = napl[i,1] * al    +
             napl[i,2] * alsu  +
             napl[i,3] * af    +
