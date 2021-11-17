@@ -2,6 +2,7 @@ module NOVAS
 
 # Local Imports
 include("constants.jl")
+include("utils.jl")
 include("nutation.jl")
 
 # Library Imports
@@ -23,21 +24,33 @@ Computes the values for nutation in longitude and nutation in obliquity for a gi
 - `dpsi`: Nutation in longitude in arcseconds
 - `deps`: Nutation in obliquity in arcseconds
 """
-function nutation_angles(t::Real;accuracy::Symbol=:full)
+function nutation_angles(t::Real; accuracy::Symbol = :full)
     @assert accuracy ∈ Set([:full, :reduced])
     t1 = t * 36525.0
     # High accuracy mode uses IAU 200A
     if accuracy == :full
-        dpsi,deps = iau2000a(T0,t1)
+        dpsi, deps = iau2000a(T0, t1)
     elseif accuracy == :reduced
         # Low accuracy mode uses the specially truncated version of IAU 2000A, called NU200K
-        dpsi,deps = nu2000k(T0,t1)
+        dpsi, deps = nu2000k(T0, t1)
     end
     # Convert output to arcseconds
     dpsi /= ASEC2RAD
     deps /= ASEC2RAD
     # Return
-    return (dpsi,deps)
+    return (dpsi, deps)
+end
+
+"""
+    mean_obliq(jd_tdb)
+
+Computes the mean obliquity of the ecliptic
+"""
+function mean_obliq(jd_tdb::Real)
+    # Julian centuries since J2000.0 epoch
+    t = (jd_tdb - T0) / 36525.0
+    ε = ((((-0.0000000434 * t - 0.000000576) * t + 0.00200340) * t - 0.0001831) * t - 46.836769) * t + 84381.406
+    return ε
 end
 
 """
@@ -59,12 +72,12 @@ Computes quantities related to the orientation of the Earth's rotation axis at J
 - `dpsi`: Nutation in longitude on arcseconds
 - `deps`: Nutation in obliquity in arcseconds
 """
-function e_tilt(jd_tdb::Real;accuracy::Symbol=:full)
+function e_tilt(jd_tdb::Real; accuracy::Symbol = :full)
     # Compute time in Julian centuries from epoch J2000.0
     t = (jd_tdb - T0) / 36525.0
     # Compute the nutation angles
-    dp,de = nutation_angles(t;accuracy=accuracy)
-    c_terms = ee_ct(jd,tdb,0.0;accuracy=accuracy) / ASEC2RAD
+    dp, de = nutation_angles(t; accuracy = accuracy)
+    c_terms = ee_ct(jd_tdb; accuracy = accuracy) / ASEC2RAD
     # Compute mean obliquity of the ecliptic in arcseconds
     d_psi = dp + PSI_COR
     d_eps = de + EPS_COR
@@ -78,7 +91,7 @@ function e_tilt(jd_tdb::Real;accuracy::Symbol=:full)
     eq_eq = d_psi * cosd(mean_ob) + c_terms
     eq_eq /= 15.0
     # Return computed result
-    return (mean_ob,true_ob,eq_eq,d_psi,d_eps)
+    return (mean_ob, true_ob, eq_eq, d_psi, d_eps)
 end
 
 """
@@ -95,21 +108,21 @@ the result is the equation of the origins.
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 - `equinox::Symbol=:mean`: Either `:mean` or `:true`
 """
-function ira_equinox(jd_tdb::Real;accuracy::Symbol=:full,equinox::Symbol=:mean)
+function ira_equinox(jd_tdb::Real; accuracy::Symbol = :full, equinox::Symbol = :mean)
     @assert equinox ∈ Set([:mean, :true])
     # NOTE: This function is memoized in novas.c
     # Compute time in Julian centuries
-    t = (jd_tdb - T0 ) / 36525.0
+    t = (jd_tdb - T0) / 36525.0
     # For the true equinox, obtain the equation of the equinoxes in seconds,
     # which includes the 'complementary terms'
     if equinox == :true
-        _, _, eq_eq, _, _ = e_tilt(jd_tdb; accuracy=accuracy)
+        _, _, eq_eq, _, _ = e_tilt(jd_tdb; accuracy = accuracy)
     elseif equinox == :mean
         eq_eq = 0.0
     end
     # Compute precession in RA in arcseconds taken from the reference
     prec_ra = 0.014506 + ((((-0.0000000368 * t - 0.000029956) * t - 0.00000044) * t + 1.3915817) * t + 4612.156534) * t
-    ra_eq = - (prec_ra / 15.0 + eq_eq) / 3600.0
+    ra_eq = -(prec_ra / 15.0 + eq_eq) / 3600.0
     return ra_eq
 end
 
@@ -128,17 +141,17 @@ does the transformation in reverse given the flag `direction`.
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 - `direction::Symbol=:mean2true`: Perform the transformation in either the `:mean2true` or `:true2mean` direction
 """
-function nutation(jd_tdb::Real, pos::AbstractVector;accuracy::Symbol=:full,direction::Symbol=:mean2true)
+function nutation(jd_tdb::Real, pos::AbstractVector; accuracy::Symbol = :full, direction::Symbol = :mean2true)
     @assert direction ∈ Set([:mean2true, :true2mean])
     # Call e_tilt to get the obliquity and nutation angles
-    oblm, oblt, _, psi, _ = e_tilt(jd_tdb;accuracy=accuracy)
+    oblm, oblt, _, psi, _ = e_tilt(jd_tdb; accuracy = accuracy)
     # Construct rotation matrix
     sobm, cobm = sincosd(oblm)
     sobt, cobt = sincosd(oblt)
     spsi, cpsi = sincos(psi * ASEC2RAD)
-    rot = [  cpsi            -spsi * cobm                -spsi * sobm         ;
-           spsi * cobt   cpsi * cobm * cobt + sobm * sobt   cpsi * sobm * cobt - cobm * sobt;
-           spsi * sobt   cpsi * cobm * sobt - sobm * cobt   cpsi * sobm * sobt + cobm * cobt]
+    rot = [cpsi -spsi*cobm -spsi*sobm
+        spsi*cobt cpsi*cobm*cobt+sobm*sobt cpsi*sobm*cobt-cobm*sobt
+        spsi*sobt cpsi*cobm*sobt-sobm*cobt cpsi*sobm*sobt+cobm*cobt]
     # Transform Position
     if direction == :mean2true
         return rot * pos
@@ -167,21 +180,33 @@ function precession(jd_tdb1::Real, pos::AbstractVector, jd_tdb2::Real)
         t *= -1
     end
 
-    psia   = ((((-    0.0000000951  * t
-                   +    0.000132851 ) * t
-                   -    0.00114045  ) * t
-                   -    1.0790069   ) * t
-                   + 5038.481507    ) * t
-    omegaa = ((((+    0.0000003337  * t
-                   -    0.000000467 ) * t
-                   -    0.00772503  ) * t
-                   +    0.0512623   ) * t
-                   -    0.025754    ) * t + eps0
-    chia   = ((((-    0.0000000560  * t
-                   +    0.000170663 ) * t
-                   -    0.00121197  ) * t
-                   -    2.3814292   ) * t
-                   +   10.556403    ) * t
+    psia = ((((-0.0000000951 * t
+               +
+               0.000132851) * t
+              -
+              0.00114045) * t
+             -
+             1.0790069) * t
+            +
+            5038.481507) * t
+    omegaa = ((((+0.0000003337 * t
+                 -
+                 0.000000467) * t
+                -
+                0.00772503) * t
+               +
+               0.0512623) * t
+              -
+              0.025754) * t + eps0
+    chia = ((((-0.0000000560 * t
+               +
+               0.000170663) * t
+              -
+              0.00121197) * t
+             -
+             2.3814292) * t
+            +
+            10.556403) * t
 
     eps0 = eps0 * ASEC2RAD
     psia = psia * ASEC2RAD
@@ -194,9 +219,9 @@ function precession(jd_tdb1::Real, pos::AbstractVector, jd_tdb2::Real)
     sd, cd = sincos(chia)
 
     # Construct precession rotation matrix
-    rot = [ cd * cb - sb * sd * cc   cd * sb * ca + sd * cc * cb * ca - sa * sd * sc   cd * sb * sa + sd * cc * cb * sa + ca * sd * sc;
-           -sd * cb - sb * cd * cc  -sd * sb * ca + cd * cc * cb * ca - sa * cd * sc  -sd * sb * sa + cd * cc * cb * sa + ca * cd * sc;
-                 sb * sc             -sc * cb * ca - sa * cc                 -sc * cb * sa + cc * ca]
+    rot = [cd*cb-sb*sd*cc cd*sb*ca+sd*cc*cb*ca-sa*sd*sc cd*sb*sa+sd*cc*cb*sa+ca*sd*sc
+        -sd*cb-sb*cd*cc -sd*sb*ca+cd*cc*cb*ca-sa*cd*sc -sd*sb*sa+cd*cc*cb*sa+ca*cd*sc
+        sb*sc -sc*cb*ca-sa*cc -sc*cb*sa+cc*ca]
 
     # Perform rotation from epoch to J2000.0
     if jd_tdb2 == T0
@@ -215,7 +240,7 @@ Transforms a position vector from the dynamical reference system to ICRS, or vic
 - `pos::AbstractVector`: Position vector, equitorial rectangular coordinates
 - `direction::Symbol=:dynamic2icrs`: Transformation direction, `:dynamic2icrs` or `:icrs2dynamic`
 """
-function frame_tie(pos::AbstractVector, direction::Symbol=:dynamic2icrs)
+function frame_tie(pos::AbstractVector, direction::Symbol = :dynamic2icrs)
     @assert direction ∈ Set([:dynamic2icrs, :icrs2dynamic])
     if direction == :dynamic2icrs
         return frame_tie_rot * pos
@@ -236,10 +261,10 @@ right ascension with respect to the true equinox of date.
 # Optional Arguments
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
-function cio_location(jd_tdb::Real;accuracy::Symbol=:full)
+function cio_location(jd_tdb::Real; accuracy::Symbol = :full)
     # NOTE: This function is memoized in novas.c
     # NOTE: We are going to calculate the values instead of using the external dep for the time being
-    ra_cio = -ira_equinox(jd_tdb; accuracy=accuracy)
+    ra_cio = -ira_equinox(jd_tdb; accuracy = accuracy)
     return ra_cio
 end
 
@@ -256,7 +281,7 @@ by the celestial intermediate pole and origin.
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
 # FIXME
-function cio_basis(jd_tdb::Real, ra_cio::Real;accuracy::Symbol=:full)
+function cio_basis(jd_tdb::Real, ra_cio::Real; accuracy::Symbol = :full)
     # NOTE: This function is memoized in novas.c
 
     # Compute unit vector z towards celestial pole
@@ -273,9 +298,9 @@ This function returns the value of the earth rotation angle (theta in degrees) f
 
 # Arguments
 - `jd_high::Real`: High-order part of UT1 Julian date
-- `jd_low::Real`: Low-order part of UT1 Julian date
+- `jd_low::Real=0.0`: Low-order part of UT1 Julian date
 """
-function era(jd_high::Real, jd_low::Real)
+function era(jd_high::Real, jd_low::Real = 0.0)
     thet1 = 0.7790572732640 + 0.00273781191135448 * (jd_high - T0)
     thet2 = 0.00273781191135448 * jd_low
     thet3 = mod(jd_high, 1.0) + mod(jd_low, 1.0)
@@ -324,11 +349,11 @@ Computes the Greenwich sidereal time, either mean or apparent, at Julian date `j
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
 function sidereal_time(jd_high::Real,
-                       jd_low::Real,
-                       delta_t::Real;
-                       gst_type::Symbol=:mean,
-                       method::Symbol=:equinox,
-                       accuracy::Symbol=:full)
+    jd_low::Real,
+    delta_t::Real;
+    gst_type::Symbol = :mean,
+    method::Symbol = :equinox,
+    accuracy::Symbol = :full)
     # NOTE: This function is memoized in novas.c
     @assert method ∈ Set([:equinox, :CIO])
     @assert gst_type ∈ Set([:mean, :apparent])
@@ -359,11 +384,11 @@ function sidereal_time(jd_high::Real,
 
     if method == :CIO
         # Obtain basis vectors, in the GCRS of the celestial intermediate system
-        ra_cio = cio_location(jd_tdb, accuracy=accuracy)
+        ra_cio = cio_location(jd_tdb, accuracy = accuracy)
     elseif method == :equinox
         # Precession-in-RA terms in mean sidereal time with coefficients in arcseconds
         st = eqeq + 0.014506 + ((((-0.0000000368 * t - 0.000029956) * t - 0.00000044) * t + 1.3915817) * t + 4612.156534) * t
-        gst = mod((st / 3600.0 + theta), 360.0) / 15.0;
+        gst = mod((st / 3600.0 + theta), 360.0) / 15.0
         if gst < 0.0
             gst += 24.0
         end
@@ -373,6 +398,7 @@ end
 
 # Function exports
 export sidereal_time,
+    mean_obliq,
     tdb2tt,
     era,
     e_tilt,

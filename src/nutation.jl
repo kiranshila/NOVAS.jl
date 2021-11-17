@@ -1,65 +1,9 @@
-using DelimitedFiles
-
-"""
-    fund_args(t)
-
-Computes the fundamental arguments (mean elements) of the Sun and Moon.
-
-# Arguments
--`t::Real`: TDB time in Julian centuries since J2000.0
-
-# Returns
-`[l,l′,F,D,Ω]` where
--`l`: Mean anomaly of the Moon
--`l′`: Mean anomaly of the Sun
--`F`: mean argument of the latitude of the Moon
--`D`: Mean elongation of the Moon from the Sun
--`Ω` Mean longitude of the Moon's ascending node
-"""
-function fund_args(t::Real)
-    l  = 485868.249036 + t * (1717915923.2178 + t * (31.8792 + t * (0.051635 + t * (-0.00024470))))
-    l′ = 1287104.79305 + t * (129596581.0481 + t * (-0.5532 + t * (0.000136 + t * (-0.00001149))))
-    F  = 335779.526232 + t * (1739527262.8478 + t * (-12.7512 + t * (-0.001037 + t * (0.00000417))))
-    D  = 1072260.70369 + t * (1602961601.2090 + t * (-6.3706 + t * (0.006593 + t * (-0.00003169))))
-    Ω  = 450160.398036 + t * (-6962890.5431 + t * (7.4722 + t * (0.007702 + t * (-0.00005939))))
-    return mod.([l, l′, F, D, Ω], ASEC360) .* ASEC2RAD
-end
-
-"""
-    read_iau2000a()
-
-Reads the included iau2000a nutation model into a Matrix and returns them as
-`(planetary_nutations,lunisolar_nutations)`. This is meant to be a high-level interface for
-working with the iau2000a data.
-"""
-function read_iau2000a()
-    # Read planetary nutation terms
-    ls_data = readdlm("data/tab5.3a.txt";comment_char='*',comments=true)[1:678,:]
-    pl_data = readdlm("data/tab5.3b.txt";skipstart=5)
-    return (pl_data, ls_data)
-end
-
 function iau2000a_statics()
     planetary, lunisolar = read_iau2000a()
     nals = lunisolar[:,1:5]                     # [:l,:l′,:F,:D,:Ω]
     cls = lunisolar[:,[7,8,11,9,10,13]] .* 1e4  # [:A, :A′, :A″, :B, :B′, :B″]
     napl = planetary[:,2:15]                    # [:l, :l′, :F, :D, :Ω, :Me, :Ve, :E, :Ma, :J, :Sa, :U, :Ne, :pA]
     cpl = planetary[:,17:20] .* 1e4             # [:A, :A″, :B, :B″]
-    return nals, cls, napl, cpl
-end
-
-"""
-    read_nu2000k()
-
-Reads the included nu2000k nutation model into a Matrix and returns them as
-`(planetary_nutations,lunisolar_nutations)`. This is meant to be a high-level interface for
-working with the nu2000k data.
-"""
-function read_nu2000k()
-    napl = readdlm("data/nu2000k_napl.csv",',')
-    nals = readdlm("data/nu2000k_nals.csv",',')
-    cpl = readdlm("data/nu2000k_cpl.csv",',')
-    cls = readdlm("data/nu2000k_cls.csv",',')
     return nals, cls, napl, cpl
 end
 
@@ -234,4 +178,4 @@ function nu2000k(jd_high::Real, jd_low::Real=0.0)
     return (Δϕ_ls + Δϕ_pl, Δε_ls + Δε_pl) .* scaling_factor
 end
 
-export read_iau2000a,read_nu2000k,iau2000a,nu2000k,fund_args
+export iau2000a,nu2000k,fund_args

@@ -8,6 +8,22 @@ Base.isapprox(x::Tuple, y::Tuple; kws...) = isapprox(collect(x), collect(y); kws
 # Include un-exported c wrappers
 include("wrapper.jl")
 
+@testset "utilities" begin
+    # Generate a julian date
+    jd_high = rand()*1e6 |> round
+    jd_low = rand()
+    # Figure the TDB Julian centuries
+    t = rand()
+    # FIXME
+    @test fund_args(t) ≈ NOVAS.fund_args(t)
+    # Generate random big angle
+    θ = rand() * 100
+    @test norm_ang(θ) ≈ NOVAS.norm_ang(θ)
+    # Test ee_ct
+    @test ee_ct(jd_high,jd_low,0) ≈ NOVAS.ee_ct(jd_high,jd_low)
+    @test ee_ct(jd_high,jd_low,1) ≈ NOVAS.ee_ct(jd_high,jd_low;accuracy=:reduced)
+end
+
 @testset "nutation" begin
     # Generate a julian date
     jd_high = rand()*1e6 |> round

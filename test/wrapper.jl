@@ -9,6 +9,20 @@ function fund_args(t::Float64)
     return a
 end
 
+function norm_ang(angle::Float64)
+    ccall((:norm_ang,libnovas),
+          Cdouble,
+          (Cdouble,),
+          angle)
+end
+
+function ee_ct(jd_high::Float64,jd_low::Float64,accuracy::Int)
+    ccall((:ee_ct,libnovas),
+        Cdouble,
+        (Cdouble,Cdouble,Cshort),
+        jd_high,jd_low,accuracy)
+end
+
 function iau2000a(jd_high::Float64,jd_low::Float64)
     dpsi = Ref{Cdouble}(0.0)
     deps = Ref{Cdouble}(0.0)
@@ -39,4 +53,9 @@ function nutation_angles(t::Float64,accuracy::Int)
         (Cdouble,Cshort,Ref{Cdouble},Ref{Cdouble}),
         t,accuracy,dpsi,deps)
     return dpsi[],deps[]
+end
+
+function e_tilt(jd_tdb::Real,accuracy::Int)
+
+
 end
