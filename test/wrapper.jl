@@ -28,3 +28,15 @@ function nu2000k(jd_high::Float64,jd_low::Float64)
           jd_high,jd_low,dpsi,deps)
     return dpsi[],deps[]
 end
+
+# Accuracy flags, 0 - Full, 1 - Reduced
+
+function nutation_angles(t::Float64,accuracy::Int)
+    dpsi = Ref{Cdouble}(0.0)
+    deps = Ref{Cdouble}(0.0)
+    ccall((:nutation_angles,libnovas),
+        Cvoid,
+        (Cdouble,Cshort,Ref{Cdouble},Ref{Cdouble}),
+        t,accuracy,dpsi,deps)
+    return dpsi[],deps[]
+end

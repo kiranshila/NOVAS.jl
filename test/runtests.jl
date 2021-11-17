@@ -13,8 +13,8 @@ include("wrapper.jl")
     jd_high = rand()*1e6 |> round
     jd_low = rand()
     # Test nutation conversions
-    @test nu2000k(jd_high,jd_low) ≈ NOVAS.nu2000k(jd_high,jd_low) atol=eps(Float64)
-    @test iau2000a(jd_high,jd_low) ≈ NOVAS.iau2000a(jd_high,jd_low) atol=eps(Float64)
+    @test nu2000k(jd_high,jd_low) ≈ NOVAS.nu2000k(jd_high,jd_low)
+    @test iau2000a(jd_high,jd_low) ≈ NOVAS.iau2000a(jd_high,jd_low)
 end
 
 @testset "novas" begin
@@ -23,4 +23,6 @@ end
     jd_low = rand()
     # Figure the TDB Julian centuries
     t = ((jd_high - NOVAS.T0) + jd_low) / 36525.0
+    @test nutation_angles(t,0) ≈ NOVAS.nutation_angles(t)
+    @test nutation_angles(t,1) ≈ NOVAS.nutation_angles(t;accuracy=:reduced)
 end
