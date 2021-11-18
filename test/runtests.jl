@@ -18,6 +18,7 @@ include("wrapper.jl")
     # Generate random big angle
     θ = rand() * 100
     @test norm_ang(θ) ≈ NOVAS.norm_ang(θ)
+    @test norm_ang(-θ) ≈ NOVAS.norm_ang(-θ)
     # Test ee_ct
     @test ee_ct(jd_high,jd_low,0) ≈ NOVAS.ee_ct(jd_high,jd_low)
     @test ee_ct(jd_high,jd_low,1) ≈ NOVAS.ee_ct(jd_high,jd_low;accuracy=:reduced)
