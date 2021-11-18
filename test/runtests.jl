@@ -14,7 +14,6 @@ include("wrapper.jl")
     jd_low = rand()
     # Figure the TDB Julian centuries
     t = rand()
-    # FIXME
     @test fund_args(t) ≈ NOVAS.fund_args(t)
     # Generate random big angle
     θ = rand() * 100

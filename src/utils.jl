@@ -22,7 +22,7 @@ function fund_args(t::Real)
     F = 335779.526232 + t * (1739527262.8478 + t * (-12.7512 + t * (-0.001037 + t * (0.00000417))))
     D = 1072260.70369 + t * (1602961601.2090 + t * (-6.3706 + t * (0.006593 + t * (-0.00003169))))
     Ω = 450160.398036 + t * (-6962890.5431 + t * (7.4722 + t * (0.007702 + t * (-0.00005939))))
-    return mod.([l, l′, F, D, Ω], ASEC360) .* ASEC2RAD
+    return rem.([l, l′, F, D, Ω], ASEC360) .* ASEC2RAD
 end
 
 """
@@ -78,11 +78,7 @@ const ke0, ke1, se0, se1 = read_cterms()
 Normalizes an angle into range 0 <= θ <= 2π
 """
 function norm_ang(angle::Real)
-    a = mod2pi(angle);
-    if a < 0.0
-          a += TWOPI
-    end
-    return a
+    rem2pi(angle,RoundDown)
 end
 
 """
@@ -105,77 +101,82 @@ function ee_ct(jd_high::T, jd_low::T = 0.0; accuracy::Symbol = :full) where {T<:
     if accuracy == :full
         # Fundamental arguments
         # Mean anomaly of the moon
-        fa[1] = norm_ang((485868.249036 + (715923.2178 + (31.8792 + (0.051635 + (-0.00024470) * t) * t) * t) * t) * ASEC2RAD + mod(1325.0 * t, 1.0) * 2π)
+        fa[1] = norm_ang((485868.249036 + (715923.2178 + (31.8792 + (0.051635 + (-0.00024470) * t) * t) * t) * t) * ASEC2RAD +  rem(1325.0 * t, 1.0) * 2π)
         # Mean anomaly of the Sun
         fa[2] = norm_ang((1287104.793048 +
-                         (1292581.0481 +
-                         (     -0.5532 +
-                         (     +0.000136 +
-                         (     -0.00001149)
-                         * t) * t) * t) * t) * ASEC2RAD
-                         + mod(99.0*t, 1.0) * 2π)
+                          (1292581.0481 +
+                           (-0.5532 +
+                            (+0.000136 +
+                             (-0.00001149)
+                             *
+                             t) * t) * t) * t) * ASEC2RAD
+                         +
+                          rem(99.0 * t, 1.0) * 2π)
         # Mean Longitude of the Moon minus Mean Longitude of the Ascending Node of the Moon.
-        fa[3] = norm_ang(( 335779.526232 +
-                         ( 295262.8478 +
-                         (    -12.7512 +
-                         (     -0.001037 +
-                         (      0.00000417)
-                         * t) * t) * t) * t) * ASEC2RAD
-                         + mod(1342.0*t, 1.0) * 2π)
+        fa[3] = norm_ang((335779.526232 +
+                          (295262.8478 +
+                           (-12.7512 +
+                            (-0.001037 +
+                             (0.00000417)
+                             *
+                             t) * t) * t) * t) * ASEC2RAD
+                         +
+                          rem(1342.0 * t, 1.0) * 2π)
         # Mean Elongation of the Moon from the Sun.
         fa[4] = norm_ang((1072260.703692 +
-                         (1105601.2090 +
-                         (     -6.3706 +
-                         (      0.006593 +
-                         (     -0.00003169)
-                         * t) * t) * t) * t) * ASEC2RAD
-                         + mod(1236.0*t, 1.0) * 2π)
+                          (1105601.2090 +
+                           (-6.3706 +
+                            (0.006593 +
+                             (-0.00003169)
+                             *
+                             t) * t) * t) * t) * ASEC2RAD
+                         +
+                          rem(1236.0 * t, 1.0) * 2π)
         # Mean Longitude of the Ascending Node of the Moon.
-        fa[5] = norm_ang(( 450160.398036 +
-                         (-482890.5431 +
-                         (      7.4722 +
-                         (      0.007702 +
-                         (     -0.00005939)
-                         * t) * t) * t) * t) * ASEC2RAD
-                         + mod(-5.0*t, 1.0) * 2π)
+        fa[5] = norm_ang((450160.398036 +
+                          (-482890.5431 +
+                           (7.4722 +
+                            (0.007702 +
+                             (-0.00005939)
+                             *
+                             t) * t) * t) * t) * ASEC2RAD
+                         +
+                          rem(-5.0 * t, 1.0) * 2π)
         fa[6] = norm_ang(4.402608842 + 2608.7903141574 * t)
         fa[7] = norm_ang(3.176146697 + 1021.3285546211 * t)
-        fa[8] = norm_ang(1.753470314 +  628.3075849991 * t)
-        fa[9] = norm_ang(6.203480913 +  334.0612426700 * t)
-        fa[10] = norm_ang(0.599546497 +   52.9690962641 * t)
-        fa[11] = norm_ang(0.874016757 +   21.3299104960 * t)
-        fa[12] = norm_ang(5.481293872 +    7.4781598567 * t)
-        fa[13] = norm_ang(5.311886287 +    3.8133035638 * t)
-        fa[14] =          (0.024381750 +    0.00000538691 * t) * t
+        fa[8] = norm_ang(1.753470314 + 628.3075849991 * t)
+        fa[9] = norm_ang(6.203480913 + 334.0612426700 * t)
+        fa[10] = norm_ang(0.599546497 + 52.9690962641 * t)
+        fa[11] = norm_ang(0.874016757 + 21.3299104960 * t)
+        fa[12] = norm_ang(5.481293872 + 7.4781598567 * t)
+        fa[13] = norm_ang(5.311886287 + 3.8133035638 * t)
+        fa[14] = (0.024381750 + 0.00000538691 * t) * t
         # Evaluate the complementary terms.
         s0 = 0.0
         s1 = 0.0
-        @inbounds @simd for i ∈ 1:33
+        for i ∈ 1:33
             a = 0.0
             for j ∈ 1:14
-                a += ke0[i,j] * fa[j]
+                a += ke0[i, j] * fa[j]
             end
-            s0 += se0[i,1] * sin(a) + se0[i,2] * cos(a)
+            s0 += se0[i, 1] * sin(a) + se0[i, 2] * cos(a)
         end
         a = 0.0
-        @inbounds @simd for j ∈ 1:14
-            a += ke1[j] * fa[j];
+        for j ∈ 1:14
+            a += ke1[j] * fa[j]
         end
         s1 += se1[1] * sin(a) + se1[2] * cos(a)
         c_terms = s0 + s1 * t
 
     elseif accuracy == :reduced
         fa2 = fund_args(t)
-        c_terms =
-            2640.96e-6 * sin(fa2[5])
-           +  63.52e-6 * sin(2.0 * fa2[5])
-           +  11.75e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + 3.0 * fa2[5])
-           +  11.21e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] +       fa2[5])
-           -   4.55e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + 2.0 * fa2[5])
-           +   2.02e-6 * sin(2.0 * fa2[3]                + 3.0 * fa2[5])
-           +   1.98e-6 * sin(2.0 * fa2[3]                +       fa2[5])
-           -   1.72e-6 * sin(3.0 * fa2[5])
-           -   0.87e-6 * t * sin(fa2[5]);
+        c_terms = 2640.96e-6 * sin(fa2[5]) + 63.52e-6 * sin(2.0 * fa2[5]) +
+                    11.75e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + 3.0 * fa2[5]) +
+                    11.21e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + fa2[5]) -
+                     4.55e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + 2.0 * fa2[5]) +
+                     2.02e-6 * sin(2.0 * fa2[3] + 3.0 * fa2[5]) +
+                     1.98e-6 * sin(2.0 * fa2[3] + fa2[5]) -
+                     1.72e-6 * sin(3.0 * fa2[5]) - 0.87e-6 * t * sin(fa2[5])
     end
     return c_terms * ASEC2RAD
 end
