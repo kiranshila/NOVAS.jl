@@ -362,8 +362,8 @@ This function returns the value of the earth rotation angle (theta in degrees) f
 function era(jd_high::Real, jd_low::Real = 0.0)
     thet1 = 0.7790572732640 + 0.00273781191135448 * (jd_high - T0)
     thet2 = 0.00273781191135448 * jd_low
-    thet3 = mod(jd_high, 1.0) + mod(jd_low, 1.0)
-    theta = mod(thet1 + thet2 + thet3, 1.0) * 360.0
+    thet3 = rem(jd_high, 1.0) + rem(jd_low, 1.0)
+    theta = rem(thet1 + thet2 + thet3, 1.0) * 360.0
     if (theta < 0.0)
         theta += 360.0
     end

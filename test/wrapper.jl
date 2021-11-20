@@ -129,3 +129,20 @@ function cio_basis(jd_tdb::Real,ra_cio::Real,ref_sys::Int,accuracy::Int)
         jd_tdb,ra_cio,ref_sys,accuracy,x,y,z)
     return x,y,z
 end
+
+function era(jd_high::Real,jd_low::Real)
+    ccall((:era,libnovas),
+        Cdouble,
+        (Cdouble,Cdouble),
+        jd_high,jd_low)
+end
+
+function tdb2tt(jdb_jd::Real)
+    tt_jd = Ref{Cdouble}(0.0)
+    secdiff = Ref{Cdouble}(0.0)
+    ccall((:tdb2tt,libnovas),
+        Cvoid,
+        (Cdouble,Ref{Cdouble},Ref{Cdouble}),
+        jdb_jd,tt_jd,secdiff)
+    return tt_jd[],secdiff[]
+end

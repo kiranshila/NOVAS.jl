@@ -90,4 +90,10 @@ end
         @test cio_basis(jd_high,ra_cio,2,0) ≈ NOVAS.cio_basis(jd_high,ra_cio;accuracy=:full)
         @test cio_basis(jd_high,ra_cio,2,1) ≈ NOVAS.cio_basis(jd_high,ra_cio;accuracy=:reduced)
     end
+    @testset "era" begin
+        @test era(jd_high,jd_low) ≈ NOVAS.era(jd_high,jd_low)
+    end
+    @testset "tdb2tt" begin
+        @test tdb2tt(jd_high) ≈ NOVAS.tdb2tt(jd_high)
+    end
 end
