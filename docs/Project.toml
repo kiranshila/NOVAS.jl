@@ -1,4 +1,5 @@
 [deps]
 AstroTime = "c61b5328-d09d-5e37-a9a8-0eb41c39009c"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
 NOVAS = "e618f0cf-9996-4d7a-81fa-69b2aebd0c83"

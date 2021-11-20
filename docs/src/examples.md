@@ -25,3 +25,9 @@ Finally, we will call `sidereal_time` to find the Greenwich mean sidereal time u
 ```@example sidereal
 sidereal_time(jd_high,jd_low,ΔT)
 ```
+And because this is Julia, we can easily compose with other libraries, like [Measurements.jl](https://github.com/JuliaPhysics/Measurements.jl).
+For example, we can add [uncertainty](https://eclipse.gsfc.nasa.gov/SEcat5/uncertainty.html) data to ΔT and see how it impacts our results
+```@example
+using Measurements
+sidereal_time(jd_high,jd_low,ΔT±3)
+```

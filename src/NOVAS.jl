@@ -246,7 +246,7 @@ Computes quantities related to the orientation of the Earth's rotation axis at J
     t = (jd_tdb - T0) / 36525.0
     # Compute the nutation angles
     dp, de = nutation_angles(t; accuracy = accuracy)
-    c_terms = ee_ct(jd_tdb; accuracy = accuracy) / ASEC2RAD
+    c_terms = ee_ct(jd_tdb,zero(typeof(jd_tdb)); accuracy = accuracy) / ASEC2RAD
     # Apply observed celestial pole offsets FIXME what do we do here?
     d_psi = dp # + PSI_COR
     d_eps = de # + EPS_COR
@@ -408,7 +408,7 @@ Computes the Greenwich sidereal time, either mean or apparent, at Julian date `j
     gst_type::Symbol = :mean,
     method::Symbol = :CIO,
     accuracy::Symbol = :full)
-    
+
     @assert method ∈ Set([:equinox, :CIO])
     @assert gst_type ∈ Set([:mean, :apparent])
 

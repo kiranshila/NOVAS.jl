@@ -88,12 +88,12 @@ Computes the "complementary terms" of the equation of the equinoxes.
 
 # Arguments
 - `jd_high::Real`: High-order part of UT1 Julian date
-- `jd_low::Real=0.0`: Low-order part of UT1 Julian date
+- `jd_low::Real`: Low-order part of UT1 Julian date
 
 # Optional Arguments
 - `accuracy::Symbol=:full`: Sets the accuracy level of `:full` or `:reduced`
 """
-function ee_ct(jd_high::T, jd_low::T = 0.0; accuracy::Symbol = :full) where {T<:Real}
+function ee_ct(jd_high::T, jd_low::T ; accuracy::Symbol = :full) where {T<:Real}
     t = ((jd_high - T0) + jd_low) / 36525.0
 
     fa = zeros(T, 14)
