@@ -74,4 +74,20 @@ end
         @test e_tilt(jd_high,0) ≈ NOVAS.e_tilt(jd_high)
         @test e_tilt(jd_high,1) ≈ NOVAS.e_tilt(jd_high;accuracy=:reduced)
     end
+    @testset "ira_equinox" begin
+        @test ira_equinox(jd_high,0,0) ≈ NOVAS.ira_equinox(jd_high;accuracy=:full,equinox=:mean)
+        @test ira_equinox(jd_high,0,1) ≈ NOVAS.ira_equinox(jd_high;accuracy=:reduced,equinox=:mean)
+        @test ira_equinox(jd_high,1,0) ≈ NOVAS.ira_equinox(jd_high;accuracy=:full,equinox=:true)
+        @test ira_equinox(jd_high,1,1) ≈ NOVAS.ira_equinox(jd_high;accuracy=:reduced,equinox=:true)
+    end
+    @testset "cio_location" begin
+        @test cio_location(jd_high,0) ≈ NOVAS.cio_location(jd_high;accuracy=:full)
+        @test cio_location(jd_high,1) ≈ NOVAS.cio_location(jd_high;accuracy=:reduced)
+    end
+    # Random RA in hours
+    ra_cio = rand() * 24
+    @testset "cio_basis" begin
+        @test cio_basis(jd_high,ra_cio,2,0) ≈ NOVAS.cio_basis(jd_high,ra_cio;accuracy=:full)
+        @test cio_basis(jd_high,ra_cio,2,1) ≈ NOVAS.cio_basis(jd_high,ra_cio;accuracy=:reduced)
+    end
 end

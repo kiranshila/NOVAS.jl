@@ -101,3 +101,31 @@ function precession(jd_tdb1::Real,pos::AbstractVector,jd_tdb2::Real)
         jd_tdb1, pos, jd_tdb2,pos2)
     return pos2
 end
+
+function ira_equinox(jd_tdb::Real,equinox::Int,accuracy::Int)
+    ccall((:ira_equinox,libnovas),
+        Cdouble,
+        (Cdouble,Cshort,Cshort),
+        jd_tdb,equinox,accuracy)
+end
+
+function cio_location(jd_tdb::Real,accuracy::Int)
+    ra_cio = Ref{Cdouble}(0.0)
+    ref_sys = Ref{Cdouble}(0.0)
+    ccall((:cio_location,libnovas),
+        Cshort,
+        (Cdouble,Cshort,Ref{Cdouble},Ref{Cdouble}),
+        jd_tdb,accuracy,ra_cio,ref_sys)
+    return ra_cio[]
+end
+
+function cio_basis(jd_tdb::Real,ra_cio::Real,ref_sys::Int,accuracy::Int)
+    x = zeros(Cdouble,3)
+    y = zeros(Cdouble,3)
+    z = zeros(Cdouble,3)
+    ccall((:cio_basis,libnovas),
+        Cshort,
+        (Cdouble,Cdouble,Cshort,Cshort,Ref{Cdouble},Ref{Cdouble},Ref{Cdouble}),
+        jd_tdb,ra_cio,ref_sys,accuracy,x,y,z)
+    return x,y,z
+end

@@ -72,7 +72,7 @@ function frame_tie(pos::AbstractVector, direction::Symbol)
 end
 
 """
-    nutation(jd_tdb)
+    nutation(jd_tdb,pos)
 
 Nutates equitorial rectangular coordinates from mean equator and equinox of epoch to true equator or
 does the transformation in reverse given the flag `direction`.
@@ -280,7 +280,7 @@ the result is the equation of the origins.
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 - `equinox::Symbol=:mean`: Either `:mean` or `:true`
 """
-function ira_equinox(jd_tdb::Real; accuracy::Symbol = :full, equinox::Symbol = :mean)
+function ira_equinox(jd_tdb::Real; accuracy::Symbol = :full, equinox::Union{Symbol,Bool} = :mean)
     @assert equinox ∈ Set([:mean, :true])
     # NOTE: This function is memoized in novas.c
     # Compute time in Julian centuries
@@ -313,7 +313,8 @@ right ascension with respect to the true equinox of date.
 function cio_location(jd_tdb::Real; accuracy::Symbol = :full)
     # NOTE: This function is memoized in novas.c
     # NOTE: We are going to calculate the values instead of using the external dep for the time being
-    ra_cio = -ira_equinox(jd_tdb; accuracy = accuracy)
+    # This results in ref_sys always being 2, true equator and equinox instead of interpolated GCRS
+    ra_cio = -ira_equinox(jd_tdb; accuracy = accuracy, equinox=:true)
     return ra_cio
 end
 
@@ -325,19 +326,28 @@ by the celestial intermediate pole and origin.
 
 # Arguments
 - `jd_tdb::Real`: TDB Julian Date
+- `ra_cio::Real`: Right ascension of the CIO at epoch (hours)
 
 # Optional Arguments
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
-# FIXME
 function cio_basis(jd_tdb::Real, ra_cio::Real; accuracy::Symbol = :full)
     # NOTE: This function is memoized in novas.c
-
     # Compute unit vector z towards celestial pole
     z0 = [0.0, 0.0, 1.0]
-    w1 = nutation(jd_tdb, -1, accuracy, z0)
+    w1 = nutation(jd_tdb,z0;accuracy=accuracy,direction=:true2mean)
     w2 = precession(jd_tdb, w1, T0)
-    zz = frame_tie(w2, 01)
+    z = frame_tie(w2,:dynamic2icrs)
+    # Compute unit vectors x and y
+    # First construct unit vector towards CIO in equator and equinox of date system
+    w0 = [cosd(ra_cio*15),sind(ra_cio*15),0]
+    # Rotate the vector into the GCRS to form unit vector x
+    w1 = nutation(jd_tdb,w0;accuracy=accuracy,direction=:true2mean)
+    w2 = precession(jd_tdb,w1,T0)
+    x = frame_tie(w2,:dynamic2icrs)
+    # Compute unit vector y orthogonal to x and z
+    y = z × x
+    return x,y,z
 end
 
 """
