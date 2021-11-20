@@ -41,4 +41,7 @@ end
     t = ((jd_high - NOVAS.T0) + jd_low) / 36525.0
     @test nutation_angles(t,0) ≈ NOVAS.nutation_angles(t)
     @test nutation_angles(t,1) ≈ NOVAS.nutation_angles(t;accuracy=:reduced)
+
+    @test e_tilt(jd_high,0) ≈ NOVAS.e_tilt(jd_high)
+    @test e_tilt(jd_high,1) ≈ NOVAS.e_tilt(jd_high;accuracy=:reduced)
 end
