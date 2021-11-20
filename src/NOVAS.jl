@@ -54,78 +54,22 @@ function mean_obliq(jd_tdb::Real)
 end
 
 """
-    e_tilt(jd_tdb)
+    frame_tie(pos;direction)
 
-Computes quantities related to the orientation of the Earth's rotation axis at Julian date `jd_tdb`
+Transforms a position vector from the dynamical reference system to ICRS, or vice versa.
 
-# Arguments
-- `jd_tdb::Real`: TDB Julian Date
-
-# Optional Arguments
-- `accuracy::Symbol=:full`: Sets the accuracy level of `:full` or `:reduced`
-
-# Returns
-`(mobl,tobl,ee,dpsi,deps)` where
-- `mobl`: Mean obliquity of the ecliptic in degrees
-- `tobl`: True obliquity of the ecliptic in degrees
-- `ee`: Equation of the equinoxes in seconds of time
-- `dpsi`: Nutation in longitude on arcseconds
-- `deps`: Nutation in obliquity in arcseconds
+# Argumenets
+- `pos::AbstractVector`: Position vector, equitorial rectangular coordinates
+- `direction::Symbol=:dynamic2icrs`: Transformation direction, `:dynamic2icrs` or `:icrs2dynamic`
 """
-function e_tilt(jd_tdb::Real; accuracy::Symbol = :full)
-    # Compute time in Julian centuries from epoch J2000.0
-    t = (jd_tdb - T0) / 36525.0
-    # Compute the nutation angles
-    dp, de = nutation_angles(t; accuracy = accuracy)
-    c_terms = ee_ct(jd_tdb; accuracy = accuracy) / ASEC2RAD
-    # Compute mean obliquity of the ecliptic in arcseconds
-    d_psi = dp + PSI_COR
-    d_eps = de + EPS_COR
-    # Compute mean and true obliquity
-    mean_ob = mean_obliq(jd_tdb)
-    true_ob = mean_ob + d_eps
-    # Convert obliquity values to degrees
-    mean_ob /= 3600.0
-    true_ob /= 3600.0
-    # Compute equation of the equinoxes in seconds
-    eq_eq = d_psi * cosd(mean_ob) + c_terms
-    eq_eq /= 15.0
-    # Return computed result
-    return (mean_ob, true_ob, eq_eq, d_psi, d_eps)
-end
-
-"""
-    ira_equinox(jd_tdb)
-
-Computes the intermediate right ascension of the equinox at the input Julian date using an
-analytical expression for the accumulated precession in right ascension. For the true equinox,
-the result is the equation of the origins.
-
-# Arguments
-- `jd_tdb::Real`: TDB Julian Date
-
-# Optional Arguments
-- `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
-- `equinox::Symbol=:mean`: Either `:mean` or `:true`
-"""
-function ira_equinox(jd_tdb::Real; accuracy::Symbol = :full, equinox::Symbol = :mean)
-    @assert equinox ∈ Set([:mean, :true])
-    # NOTE: This function is memoized in novas.c
-    # Compute time in Julian centuries
-    t = (jd_tdb - T0) / 36525.0
-    # For the true equinox, obtain the equation of the equinoxes in seconds,
-    # which includes the 'complementary terms'
-    if equinox == :true
-        _, _, eq_eq, _, _ = e_tilt(jd_tdb; accuracy = accuracy)
-    elseif equinox == :mean
-        eq_eq = 0.0
+function frame_tie(pos::AbstractVector, direction::Symbol = :dynamic2icrs)
+    @assert direction ∈ Set([:dynamic2icrs, :icrs2dynamic])
+    if direction == :dynamic2icrs
+        return frame_tie_rot * pos
+    elseif direction == :icrs2dynamic
+        return frame_tie_rot' * pos
     end
-    # Compute precession in RA in arcseconds taken from the reference
-    prec_ra = 0.014506 + ((((-0.0000000368 * t - 0.000029956) * t - 0.00000044) * t + 1.3915817) * t + 4612.156534) * t
-    ra_eq = -(prec_ra / 15.0 + eq_eq) / 3600.0
-    return ra_eq
 end
-
 
 """
     nutation(jd_tdb)
@@ -232,21 +176,126 @@ function precession(jd_tdb1::Real, pos::AbstractVector, jd_tdb2::Real)
 end
 
 """
-    frame_tie(pos;direction)
+    cel_pole(tjd)
 
-Transforms a position vector from the dynamical reference system to ICRS, or vice versa.
+Computes the celestial pole offsets for high-precision applications. Each set of
+offsets is a correction to the modeled position of the pole for a specific date, derived
+from observations and published by the IERS.
 
-# Argumenets
-- `pos::AbstractVector`: Position vector, equitorial rectangular coordinates
-- `direction::Symbol=:dynamic2icrs`: Transformation direction, `:dynamic2icrs` or `:icrs2dynamic`
+This function differs from the C version, where this returns the corrects instead of mutating global state.
+
+# Arguments
+-`tjd::Real`: TDB or TT Julian date for pole offsets
+-`type::Symbol=:angular`: Type of pole offset. `:angular` for corrections to angular 
+    coordinates of modeled pole referred to mean ecliptic of date, that is, 
+    delta-delta-psi and delta-delta-epsilon. `:positional` for corrections to components
+    of modeled pole unit vector referred to GCRS axes, that is, dx and dy.
+-`dople1`: Value of celestial pole offset in first coordinate.
+-`dpole2`: Value of celestial pole offset is second coordinate.
 """
-function frame_tie(pos::AbstractVector, direction::Symbol = :dynamic2icrs)
-    @assert direction ∈ Set([:dynamic2icrs, :icrs2dynamic])
-    if direction == :dynamic2icrs
-        return frame_tie_rot * pos
-    elseif direction == :icrs2dynamic
-        return frame_tie_rot' * pos
+function cel_pole(tjd::Real, type::Symbol, dpole1::Real, dpole2::Real)
+    @assert type ∈ Set([:angular, :positional])
+    if type == :angular
+        psi_cor = dpole1 * 1e-3
+        eps_cor = dpole2 * 1e-3
+    elseif type == :positional
+        # Components of modeled pole unit vector referred to GCRS axes
+        dx = dpole1
+        dy = dpole2
+        t = (tjd - T0) / 36525.0
+        # Compute sine_e of mean obliquity of date
+        mean_ob = mean_obliq(tjd)
+        sin_e = sin(mean_ob * ASEC2RAD)
+        # Trivial model of pole trajectory is GCRS allows computation of dz
+        x = (2004.190 * t) * ASEC2RAD
+        dz = -(x + 0.5 * x * x * x) * dx
+        # Form pole offset vector in GCRS
+        dp1 = [dx, dy, dz] .* 1e-3 .* ASEC2RAD
+        # Precess pole offset vector to mean equator and equinox of date
+        dp2 = frame_tie(dp1, :icrs2dynamic)
+        dp3 = precession(T0, dp2, tjd)
+        # Compute delta-delta-psi and delta-delta-epsilon in arcseconds
+        psi_cor = (dp3[1] / sin_e) / ASEC2RAD
+        eps_cor = dp3[2] / ASEC3RAD
     end
+    return psi_cor, eps_cor
+end
+
+"""
+    e_tilt(jd_tdb)
+
+Computes quantities related to the orientation of the Earth's rotation axis at Julian date `jd_tdb`
+
+# Arguments
+- `jd_tdb::Real`: TDB Julian Date
+
+# Optional Arguments
+- `accuracy::Symbol=:full`: Sets the accuracy level of `:full` or `:reduced`
+
+# Returns
+`(mobl,tobl,ee,dpsi,deps)` where
+- `mobl`: Mean obliquity of the ecliptic in degrees
+- `tobl`: True obliquity of the ecliptic in degrees
+- `ee`: Equation of the equinoxes in seconds of time
+- `dpsi`: Nutation in longitude on arcseconds
+- `deps`: Nutation in obliquity in arcseconds
+"""
+function e_tilt(jd_tdb::Real; accuracy::Symbol = :full)
+    # FIXME how do we include the PSI_COR and EPS_COR
+    # NOTE: This function is memoized in novas.C
+
+    # Compute time in Julian centuries from epoch J2000.0
+    t = (jd_tdb - T0) / 36525.0
+    # Compute the nutation angles
+    dp, de = nutation_angles(t; accuracy = accuracy)
+    c_terms = ee_ct(jd_tdb; accuracy = accuracy) / ASEC2RAD
+    # Apply observed celestial pole offsets FIXME what do we do here?
+    d_psi = dp # + PSI_COR
+    d_eps = de # + EPS_COR
+    # Compute mean obliquity of the ecliptic in arcseconds
+    mean_ob = mean_obliq(jd_tdb)
+    # Compute mean and true obliquity
+    true_ob = mean_ob + d_eps
+    # Convert obliquity values to degrees
+    mean_ob /= 3600.0
+    true_ob /= 3600.0
+    # Compute equation of the equinoxes in seconds
+    eq_eq = d_psi * cosd(mean_ob) + c_terms
+    eq_eq /= 15.0
+    # Return computed result
+    return (mean_ob, true_ob, eq_eq, d_psi, d_eps)
+end
+
+"""
+    ira_equinox(jd_tdb)
+
+Computes the intermediate right ascension of the equinox at the input Julian date using an
+analytical expression for the accumulated precession in right ascension. For the true equinox,
+the result is the equation of the origins.
+
+# Arguments
+- `jd_tdb::Real`: TDB Julian Date
+
+# Optional Arguments
+- `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
+- `equinox::Symbol=:mean`: Either `:mean` or `:true`
+"""
+function ira_equinox(jd_tdb::Real; accuracy::Symbol = :full, equinox::Symbol = :mean)
+    @assert equinox ∈ Set([:mean, :true])
+    # NOTE: This function is memoized in novas.c
+    # Compute time in Julian centuries
+    t = (jd_tdb - T0) / 36525.0
+    # For the true equinox, obtain the equation of the equinoxes in seconds,
+    # which includes the 'complementary terms'
+    if equinox == :true
+        _, _, eq_eq, _, _ = e_tilt(jd_tdb; accuracy = accuracy)
+    elseif equinox == :mean
+        eq_eq = 0.0
+    end
+    # Compute precession in RA in arcseconds taken from the reference
+    prec_ra = 0.014506 + ((((-0.0000000368 * t - 0.000029956) * t - 0.00000044) * t + 1.3915817) * t + 4612.156534) * t
+    ra_eq = -(prec_ra / 15.0 + eq_eq) / 3600.0
+    return ra_eq
 end
 
 """
