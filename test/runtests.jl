@@ -55,4 +55,13 @@ end
         @test e_tilt(jd_high,0) ≈ NOVAS.e_tilt(jd_high)
         @test e_tilt(jd_high,1) ≈ NOVAS.e_tilt(jd_high;accuracy=:reduced)
     end
+    @testset "mean_obliq" begin
+        @test mean_obliq(jd_high) ≈ NOVAS.mean_obliq(jd_high)
+    end
+    # Generate random position vector
+    pos = rand(3)
+    @testset "frame_tie" begin
+        @test frame_tie(pos,-1) ≈ NOVAS.frame_tie(pos,:dynamic2icrs)
+        @test frame_tie(pos,0) ≈ NOVAS.frame_tie(pos,:icrs2dynamic)
+    end
 end

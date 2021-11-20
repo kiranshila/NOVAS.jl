@@ -60,9 +60,9 @@ Transforms a position vector from the dynamical reference system to ICRS, or vic
 
 # Argumenets
 - `pos::AbstractVector`: Position vector, equitorial rectangular coordinates
-- `direction::Symbol=:dynamic2icrs`: Transformation direction, `:dynamic2icrs` or `:icrs2dynamic`
+- `direction::Symbol`: Transformation direction, `:dynamic2icrs` or `:icrs2dynamic`
 """
-function frame_tie(pos::AbstractVector, direction::Symbol = :dynamic2icrs)
+function frame_tie(pos::AbstractVector, direction::Symbol)
     @assert direction ∈ Set([:dynamic2icrs, :icrs2dynamic])
     if direction == :dynamic2icrs
         return frame_tie_rot * pos

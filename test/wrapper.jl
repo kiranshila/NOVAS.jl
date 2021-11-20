@@ -1,6 +1,6 @@
 using NOVAS_jll
 
-function fund_args(t::Float64)
+function fund_args(t::Real)
     a = zeros(Cdouble, 5)
     ccall((:fund_args, libnovas),
         Cvoid,
@@ -9,21 +9,21 @@ function fund_args(t::Float64)
     return a
 end
 
-function norm_ang(angle::Float64)
+function norm_ang(angle::Real)
     ccall((:norm_ang, libnovas),
         Cdouble,
         (Cdouble,),
         angle)
 end
 
-function ee_ct(jd_high::Float64, jd_low::Float64, accuracy::Int)
+function ee_ct(jd_high::Real, jd_low::Real, accuracy::Int)
     ccall((:ee_ct, libnovas),
         Cdouble,
         (Cdouble, Cdouble, Cshort),
         jd_high, jd_low, accuracy)
 end
 
-function iau2000a(jd_high::Float64, jd_low::Float64)
+function iau2000a(jd_high::Real, jd_low::Real)
     dpsi = Ref{Cdouble}(0.0)
     deps = Ref{Cdouble}(0.0)
     ccall((:iau2000a, libnovas),
@@ -33,7 +33,7 @@ function iau2000a(jd_high::Float64, jd_low::Float64)
     return dpsi[], deps[]
 end
 
-function nu2000k(jd_high::Float64, jd_low::Float64)
+function nu2000k(jd_high::Real, jd_low::Real)
     dpsi = Ref{Cdouble}(0.0)
     deps = Ref{Cdouble}(0.0)
     ccall((:nu2000k, libnovas),
@@ -45,7 +45,7 @@ end
 
 # Accuracy flags, 0 - Full, 1 - Reduced
 
-function nutation_angles(t::Float64, accuracy::Int)
+function nutation_angles(t::Real, accuracy::Int)
     dpsi = Ref{Cdouble}(0.0)
     deps = Ref{Cdouble}(0.0)
     ccall((:nutation_angles, libnovas),
@@ -66,4 +66,20 @@ function e_tilt(jd_tdb::Real, accuracy::Int)
         (Cdouble, Cshort, Ref{Cdouble}, Ref{Cdouble}, Ref{Cdouble}, Ref{Cdouble}, Ref{Cdouble}),
         jd_tdb, accuracy, mobl, tobl, ee, dpsi, deps)
     return mobl[], tobl[], ee[], dpsi[], deps[]
+end
+
+function mean_obliq(jd_tdb::Real)
+    ccall((:mean_obliq, libnovas),
+        Cdouble,
+        (Cdouble,),
+        jd_tdb)
+end
+
+function frame_tie(pos::AbstractVector,direction::Int)
+    pos2 = zeros(Cdouble,3)
+    ccall((:frame_tie, libnovas),
+        Cvoid,
+        (Ref{Cdouble},Cshort, Ref{Cdouble}),
+        pos, direction, pos2)
+    return pos2
 end
