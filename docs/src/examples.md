@@ -12,10 +12,13 @@ We will also call it's update routine.
 using AstroTime
 AstroTime.update()
 ```
-Next, we will use the current Julian UT1 date and find ΔT.
+Next, we will use the current Julian UT1 date.
 ```@example sidereal
 ut1_now = from_utc(now(); scale=UT1)
-jd_high, jd_low = julian_twopart(ut1_now)
+```
+Then, we will use `AstroTime` to convert this date to a Julian date and give us the current offset to Terrestrial Time
+```@example sidereal
+jd_high, jd_low = julian_twopart(ut1_now) .|> value
 ΔT = getoffset(ut1_now,TT)
 ```
 Finally, we will call `sidereal_time` to find the Greenwich mean sidereal time using the CIO method with full accuracy
