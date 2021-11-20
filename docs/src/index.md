@@ -6,12 +6,8 @@ CurrentModule = NOVAS
 
 Documentation for [NOVAS](https://github.com/kiranshila/NOVAS.jl).
 
-```@index
 
-```
-
-```@autodocs
-Modules = [NOVAS]
-Order = [:function,:type]
-Private = false
+```@contents
+Pages = ["examples.md", "api.md"]
+Depth = 3
 ```

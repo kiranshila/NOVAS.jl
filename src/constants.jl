@@ -19,7 +19,6 @@ const GE = 3.98600433e+14
 # Radius of Earth in meters from IERS Conventions (2003).
 const ERAD = 6378136.6
 # Earth ellipsoid flattening from IERS Conventions (2003).
-# Value is 1 / 298.25642.
 const F = 1 / 298.25642
 # Rotational angular velocity of Earth in radians/sec from IERS
 # Conventions (2003).

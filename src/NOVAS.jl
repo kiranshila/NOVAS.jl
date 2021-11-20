@@ -399,8 +399,8 @@ Computes the Greenwich sidereal time, either mean or apparent, at Julian date `j
 
 # Arguments
 - `jd_high::Real`: high-order part of UT1 Julian date
-- `jd_low::Real`: low-order part of UT1 Julian date
-- `delta_t::Real`: Difference TT-UT1 at `jd_high` + `jd_low` in seconds
+- `jd_low::Real=0`: low-order part of UT1 Julian date
+- `delta_t::Real=0`: Difference TT-UT1 at `jd_high` + `jd_low` in seconds
 
 # Optional arguments
 - `gst_type::Symbol=:mean`: Return results as mean (`:mean`) or apparent (`:apparent`) time
@@ -408,8 +408,8 @@ Computes the Greenwich sidereal time, either mean or apparent, at Julian date `j
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
 function sidereal_time(jd_high::Real,
-    jd_low::Real,
-    delta_t::Real;
+    jd_low::Real=0.0,
+    delta_t::Real=0.0;
     gst_type::Symbol = :mean,
     method::Symbol = :CIO,
     accuracy::Symbol = :full)
