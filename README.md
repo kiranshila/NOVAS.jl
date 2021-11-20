@@ -4,7 +4,7 @@
 [![Build Status](https://github.com/kiranshila/NOVAS.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/kiranshila/NOVAS.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/kiranshila/NOVAS.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/kiranshila/NOVAS.jl)
 
-## What this is
+## What is this
 
 A reimplementation of the Naval Observatory Vector Astrometry Software (NOVAS) in pure Julia.
 
