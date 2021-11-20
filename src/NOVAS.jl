@@ -6,7 +6,7 @@ include("utils.jl")
 include("nutation.jl")
 
 # Library Imports
-using LinearAlgebra
+using LinearAlgebra, Memoize
 
 """
     nutation_angles(t)
@@ -114,8 +114,7 @@ Precesses equatorial rectangular coordinates from one epoch to another. One of t
 - `jd_tdb2::Real`: TDB Julian Date of second epoch
 - `pos::AbstractVector`: Position vector, geocentric equatorial rectangular coordinates, referred to mean dynamical equator and equinox of first epoch
 """
-function precession(jd_tdb1::Real, pos::AbstractVector, jd_tdb2::Real)
-    # NOTE: this function is memoized in novas.c
+@memoize function precession(jd_tdb1::Real, pos::AbstractVector, jd_tdb2::Real)
     @assert (jd_tdb1 == T0) || (jd_tdb2 == T0) "One of jd_tdb1, jd_tdb2 must be T0"
     eps0 = 84381.406
     # t is time in TDB centuries between the two epochs
@@ -240,9 +239,8 @@ Computes quantities related to the orientation of the Earth's rotation axis at J
 - `dpsi`: Nutation in longitude on arcseconds
 - `deps`: Nutation in obliquity in arcseconds
 """
-function e_tilt(jd_tdb::Real; accuracy::Symbol = :full)
+@memoize function e_tilt(jd_tdb::Real; accuracy::Symbol = :full)
     # FIXME how do we include the PSI_COR and EPS_COR
-    # NOTE: This function is memoized in novas.C
 
     # Compute time in Julian centuries from epoch J2000.0
     t = (jd_tdb - T0) / 36525.0
@@ -280,9 +278,8 @@ the result is the equation of the origins.
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 - `equinox::Symbol=:mean`: Either `:mean` or `:true`
 """
-function ira_equinox(jd_tdb::Real; accuracy::Symbol = :full, equinox::Union{Symbol,Bool} = :mean)
+@memoize function ira_equinox(jd_tdb::Real; accuracy::Symbol = :full, equinox::Union{Symbol,Bool} = :mean)
     @assert equinox ∈ Set([:mean, :true])
-    # NOTE: This function is memoized in novas.c
     # Compute time in Julian centuries
     t = (jd_tdb - T0) / 36525.0
     # For the true equinox, obtain the equation of the equinoxes in seconds,
@@ -310,8 +307,7 @@ right ascension with respect to the true equinox of date.
 # Optional Arguments
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
-function cio_location(jd_tdb::Real; accuracy::Symbol = :full)
-    # NOTE: This function is memoized in novas.c
+@memoize function cio_location(jd_tdb::Real; accuracy::Symbol = :full)
     # NOTE: We are going to calculate the values instead of using the external dep for the time being
     # This results in ref_sys always being 2, true equator and equinox instead of interpolated GCRS
     ra_cio = -ira_equinox(jd_tdb; accuracy = accuracy, equinox=:true)
@@ -331,8 +327,7 @@ by the celestial intermediate pole and origin.
 # Optional Arguments
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
-function cio_basis(jd_tdb::Real, ra_cio::Real; accuracy::Symbol = :full)
-    # NOTE: This function is memoized in novas.c
+@memoize function cio_basis(jd_tdb::Real, ra_cio::Real; accuracy::Symbol = :full)
     # Compute unit vector z towards celestial pole
     z0 = [0.0, 0.0, 1.0]
     w1 = nutation(jd_tdb,z0;accuracy=accuracy,direction=:true2mean)
@@ -407,13 +402,13 @@ Computes the Greenwich sidereal time, either mean or apparent, at Julian date `j
 - `method::Symbol=:CIO`: Computation method, CIO-based (`:CIO`) or equinox-based (`:equinox`)
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
-function sidereal_time(jd_high::Real,
+@memoize function sidereal_time(jd_high::Real,
     jd_low::Real=0.0,
     delta_t::Real=0.0;
     gst_type::Symbol = :mean,
     method::Symbol = :CIO,
     accuracy::Symbol = :full)
-    # NOTE: This function is memoized in novas.c
+    
     @assert method ∈ Set([:equinox, :CIO])
     @assert gst_type ∈ Set([:mean, :apparent])
 
