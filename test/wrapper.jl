@@ -83,3 +83,21 @@ function frame_tie(pos::AbstractVector,direction::Int)
         pos, direction, pos2)
     return pos2
 end
+
+function nutation(jd_tdb::Real,direction::Int,accuracy::Int,pos::AbstractVector)
+    pos2 = zeros(Cdouble,3)
+    ccall((:nutation, libnovas),
+        Cvoid,
+        (Cdouble, Cshort, Cshort,Ref{Cdouble}, Ref{Cdouble}),
+        jd_tdb, direction, accuracy,pos,pos2)
+    return pos2
+end
+
+function precession(jd_tdb1::Real,pos::AbstractVector,jd_tdb2::Real)
+    pos2 = zeros(Cdouble,3)
+    ccall((:precession, libnovas),
+        Cshort,
+        (Cdouble, Ref{Cdouble}, Cdouble, Ref{Cdouble}),
+        jd_tdb1, pos, jd_tdb2,pos2)
+    return pos2
+end

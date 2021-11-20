@@ -51,10 +51,6 @@ end
         @test nutation_angles(t,0) ≈ NOVAS.nutation_angles(t)
         @test nutation_angles(t,1) ≈ NOVAS.nutation_angles(t;accuracy=:reduced)
     end
-    @testset "e_tilt" begin
-        @test e_tilt(jd_high,0) ≈ NOVAS.e_tilt(jd_high)
-        @test e_tilt(jd_high,1) ≈ NOVAS.e_tilt(jd_high;accuracy=:reduced)
-    end
     @testset "mean_obliq" begin
         @test mean_obliq(jd_high) ≈ NOVAS.mean_obliq(jd_high)
     end
@@ -63,5 +59,19 @@ end
     @testset "frame_tie" begin
         @test frame_tie(pos,-1) ≈ NOVAS.frame_tie(pos,:dynamic2icrs)
         @test frame_tie(pos,0) ≈ NOVAS.frame_tie(pos,:icrs2dynamic)
+    end
+    @testset "nutation" begin
+        @test nutation(jd_high,0,0,pos) ≈ NOVAS.nutation(jd_high,pos;accuracy=:full,direction=:mean2true)
+        @test nutation(jd_high,0,1,pos) ≈ NOVAS.nutation(jd_high,pos;accuracy=:reduced,direction=:mean2true)
+        @test nutation(jd_high,1,0,pos) ≈ NOVAS.nutation(jd_high,pos;accuracy=:full,direction=:true2mean)
+        @test nutation(jd_high,1,1,pos) ≈ NOVAS.nutation(jd_high,pos;accuracy=:reduced,direction=:true2mean)
+    end
+    @testset "precession" begin
+        @test precession(jd_high,pos,NOVAS.T0) ≈ NOVAS.precession(jd_high,pos,NOVAS.T0)
+        @test precession(NOVAS.T0,pos,jd_high) ≈ NOVAS.precession(NOVAS.T0,pos,jd_high)
+    end
+    @testset "e_tilt" begin
+        @test e_tilt(jd_high,0) ≈ NOVAS.e_tilt(jd_high)
+        @test e_tilt(jd_high,1) ≈ NOVAS.e_tilt(jd_high;accuracy=:reduced)
     end
 end
