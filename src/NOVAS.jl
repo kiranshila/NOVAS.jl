@@ -404,14 +404,14 @@ Computes the Greenwich sidereal time, either mean or apparent, at Julian date `j
 
 # Optional arguments
 - `gst_type::Symbol=:mean`: Return results as mean (`:mean`) or apparent (`:apparent`) time
-- `method::Symbol=:equinox`: Computation method, CIO-based (`:CIO`) or equinox-based (`:equinox`)
+- `method::Symbol=:CIO`: Computation method, CIO-based (`:CIO`) or equinox-based (`:equinox`)
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
 function sidereal_time(jd_high::Real,
     jd_low::Real,
     delta_t::Real;
     gst_type::Symbol = :mean,
-    method::Symbol = :equinox,
+    method::Symbol = :CIO,
     accuracy::Symbol = :full)
     # NOTE: This function is memoized in novas.c
     @assert method ∈ Set([:equinox, :CIO])
@@ -431,23 +431,35 @@ function sidereal_time(jd_high::Real,
 
     # Compute the equation of the equinoxes if needed, depending upon the input values of `gst_type` and `method`.
     # If not needed, set to zero
-    # FIXME
-    # if ((gst_type == :mean)     && (method == :CIO)) ||
-    #    ((gst_type == :apparent) && (method == :equinox))
-    #     _,_,ee,_,_ = e_tilt(jd_tdb,accuracy)
-    #     eqeq = ee * 15
-    # else
-    #     eqeq = 0
-    # end
-    eqeq = 0
+    if ((gst_type == :mean)     && (method == :CIO)) ||
+       ((gst_type == :apparent) && (method == :equinox))
+        _,_,ee,_,_ = e_tilt(jd_tdb;accuracy=accuracy)
+        eqeq = ee * 15
+    else
+        eqeq = 0
+    end
 
     if method == :CIO
         # Obtain basis vectors, in the GCRS of the celestial intermediate system
-        ra_cio = cio_location(jd_tdb, accuracy = accuracy)
+        ra_cio = cio_location(jd_tdb; accuracy = accuracy)
+        x,y,z = cio_basis(jd_tdb,ra_cio;accuracy = accuracy)
+        # Compute the direction of the true equinox in the GCRS
+        w1 = nutation(jd_tdb,[1,0,0];direction=:true2mean,accuracy=accuracy)
+        w2 = precession(jd_tdb,w1,T0)
+        eq = frame_tie(w2,:dynamic2icrs)
+        # Compute the hour angle of the equinox w.r.t. the TIO meridian
+        ha_eq = theta - atand(eq⋅y,eq⋅x)
+        # For mean, subtract the equation of the equinoxes
+        ha_eq -= eqeq / 240
+        ha_eq = rem(ha_eq,360) / 15
+        if ha_eq < 0
+            ha_eq += 24
+        end
+        gst = ha_eq
     elseif method == :equinox
         # Precession-in-RA terms in mean sidereal time with coefficients in arcseconds
         st = eqeq + 0.014506 + ((((-0.0000000368 * t - 0.000029956) * t - 0.00000044) * t + 1.3915817) * t + 4612.156534) * t
-        gst = mod((st / 3600.0 + theta), 360.0) / 15.0
+        gst = rem((st / 3600.0 + theta), 360.0) / 15.0
         if gst < 0.0
             gst += 24.0
         end

@@ -146,3 +146,17 @@ function tdb2tt(jdb_jd::Real)
         jdb_jd,tt_jd,secdiff)
     return tt_jd[],secdiff[]
 end
+
+function sidereal_time(jd_high::Real,
+    jd_low::Real,
+    delta_t::Real,
+    gst_type::Int,
+    method::Int,
+    accuracy::Int)
+    gst = Ref{Cdouble}(0.0)
+    ccall((:sidereal_time,libnovas),
+        Cshort,
+        (Cdouble,Cdouble,Cdouble,Cshort,Cshort,Cshort,Ref{Cdouble}),
+        jd_high,jd_low,delta_t,gst_type,method,accuracy,gst)
+    return gst[]
+end

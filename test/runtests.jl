@@ -96,4 +96,14 @@ end
     @testset "tdb2tt" begin
         @test tdb2tt(jd_high) ≈ NOVAS.tdb2tt(jd_high)
     end
+    @testset "sidereal_time" begin
+        @test sidereal_time(jd_high,jd_low,0.0,0,0,0) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:mean,method=:CIO,accuracy=:full)
+        @test sidereal_time(jd_high,jd_low,0.0,0,0,1) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:mean,method=:CIO,accuracy=:reduced)
+        @test sidereal_time(jd_high,jd_low,0.0,0,1,0) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:mean,method=:equinox,accuracy=:full)
+        @test sidereal_time(jd_high,jd_low,0.0,0,1,1) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:mean,method=:equinox,accuracy=:reduced)
+        @test sidereal_time(jd_high,jd_low,0.0,1,0,0) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:apparent,method=:CIO,accuracy=:full)
+        @test sidereal_time(jd_high,jd_low,0.0,1,0,1) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:apparent,method=:CIO,accuracy=:reduced)
+        @test sidereal_time(jd_high,jd_low,0.0,1,1,0) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:apparent,method=:equinox,accuracy=:full)
+        @test sidereal_time(jd_high,jd_low,0.0,1,1,1) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:apparent,method=:equinox,accuracy=:reduced)
+    end
 end
