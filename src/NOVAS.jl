@@ -181,7 +181,7 @@ Computes the celestial pole offsets for high-precision applications. Each set of
 offsets is a correction to the modeled position of the pole for a specific date, derived
 from observations and published by the IERS.
 
-This function differs from the C version, where this returns the corrects instead of mutating global state.
+This function differs from the C version, where this returns the corrections instead of mutating global state.
 
 # Arguments
 -`tjd::Real`: TDB or TT Julian date for pole offsets
@@ -390,7 +390,8 @@ end
 """
     sidereal_time(jd_ut1,0,delta_t)
 
-Computes the Greenwich sidereal time, either mean or apparent, at Julian date `jd_high` + `jd_low` in hours
+Computes the Greenwich sidereal time, either mean or apparent, at Julian date `jd_high` + `jd_low` in hours.
+See Chapter 5 in the NOVASC manual for information between equinox and CIO-based methods.
 
 # Arguments
 - `jd_high::Real`: high-order part of UT1 Julian date
@@ -460,6 +461,56 @@ Computes the Greenwich sidereal time, either mean or apparent, at Julian date `j
         end
     end
     return gst
+end
+
+"""
+    OneSurface(lat,lon,h,temp,p)
+
+Structure holding the observer's location on the surface of the Earth. 
+Atmospheric parameters are optional and are only used by `equ2hor` in the
+calculation of refraction.
+
+# Arguments
+- `latitude::Real`: ITRS latitude in degrees; north positive
+- `longitude::Real`: ITRS longitude in degrees; east positive
+- `height::Real`: Height of observer (meters)
+- `temperature::Real=0`: Temperature (degrees Celsius)
+- `pressure::Real=0`: Atmospheric pressure (millibars)
+"""
+struct OnSurface
+    latitude::Real
+    longitude::Real
+    height::Real
+    temperature::Real
+    pressure::Real
+end
+
+OnSurface(lat::T,lon::T,h::T) where {T <: Real} = OnSurface(lat,lon,h,zero(T),zero(T)) 
+
+"""
+    equ2hor(jd_ut1,delta_t,ra,dec)
+
+This function transforms topocentric right ascension and
+declination to zenith distance and azimuth.  It uses a method
+that properly accounts for polar motion, which is significant at
+the sub-arcsecond level.  This function can also adjust
+coordinates for atmospheric refraction.
+
+# Arguments
+- `jd_ut1::Real`: UT1 Julian Date
+- `delta_t::Real`: Difference TT-UT1 ast `jd_ut1` in seconds
+- `ra::Real`: Topocentric right ascension in hours, referred to true equator
+- `dec::Real`: Topocentric declination in degrees, referred to true equatior
+
+
+# Optional arguments
+- `gst_type::Symbol=:mean`: Return results as mean (`:mean`) or apparent (`:apparent`) time
+- `method::Symbol=:CIO`: Computation method, CIO-based (`:CIO`) or equinox-based (`:equinox`)
+- `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
+  
+"""
+function equ2hor(ut1)
+
 end
 
 # Function exports
