@@ -6,7 +6,7 @@ include("utils.jl")
 include("nutation.jl")
 
 # Library Imports
-using LinearAlgebra, Memoize
+using LinearAlgebra, Memoize, StaticArrays
 
 """
     nutation_angles(t)
@@ -508,7 +508,7 @@ function wobble(tjd::Real, xp::Real, yp::Real, pos::AbstractVector; direction::S
     yz = -cosx * siny
     zz = cosx * cosy
 
-    rot_mat = [xx yx zx; xy yy zy; xz yz zz]
+    rot_mat = @SMatrix [xx yx zx; xy yy zy; xz yz zz]
 
     # Perform rotation
     if direction == :itrs2terr
@@ -516,6 +516,30 @@ function wobble(tjd::Real, xp::Real, yp::Real, pos::AbstractVector; direction::S
     elseif direction == :terr2itrs
         return rot_mat' * pos
     end
+end
+
+"""
+    spin(angle,pos)
+
+Transfroms a vector from one coordiate system to another with the same origin and axes rotated about the z-axis.
+
+# Arguments
+-`angle::Real`: Angle of rotation, positive counterclockwise when viewed from +z, in degrees
+-`pos::AbstractVector`: Position Vector
+"""
+function spin(angle::Real,pos::AbstractVector)
+    sinang,cosang = sincosd(angle)
+    xx = cosang
+    yx = sinang
+    zx = 0.0
+    xy = -sinang
+    yy = cosang
+    zy = 0.0
+    xz = 0.0
+    yz = 0.0
+    zz = 1.0
+    rot_mat = @SMatrix [xx yx zx; xy yy zy; xz yz zz]
+    return rot_mat * pos
 end
 
 """
@@ -548,14 +572,20 @@ function ter2cel(jd_ut_high::Real, jd_ut_low::Real, delta_t::Real, vec::Abstract
     _, secdiff = tdb2tt(jd_tt)
     jd_tdb = jd_tt + secdiff / 86400.0
     if method == :CIO
-        # Apply polar motion, transforming the vector to the terrestrial intermediate system
+        # Apply polar motion (if it exists), transforming the vector to the terrestrial intermediate system
         if iszero(xp) && iszero(yp)
             v1 = copy(vec)
         else
-            v1 = wobble(jd_tdb, 0, xp, yp, vec1)
+            v1 = wobble(jd_tdb, xp, yp, vec1; direction = :itrs2terr)
         end
-
-
+        # Obtain basis vectors, in the GCRS of the celestial intermediate system
+        r_cio = cio_location(jd_tdb; accuracy = accuracy)
+        x,y,z = cio_basis(jd_tdb,r_cio;accuracy=accuracy)
+        # Compute and apply earth rotation angle, `theta` transforming thevector to the celestial intermediate system
+        θ = era(jd_ut_high,jd_ut_low)
+        v2 = spin(-θ,v1)
+        # Transform the vector from the celestial intermediate system to the GCRS
+        #vec2 = 
     elseif method == :equinox
 
     end
@@ -660,5 +690,6 @@ export sidereal_time,
     frame_tie,
     cio_location,
     cio_basis,
-    wobble
+    wobble,
+    spin
 end

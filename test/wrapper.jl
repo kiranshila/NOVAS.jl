@@ -169,3 +169,12 @@ function wobble(tjd::Real,direction::Int,xp::Real,yp::Real,pos::Vector)
         tjd,direction,xp,yp,pos,pos2)
     return pos2
 end
+
+function spin(angle::Real,pos::Vector)
+    pos2 = zeros(Cdouble,3)
+    ccall((:spin,libnovas),
+        Cvoid,
+        (Cdouble,Ref{Cdouble},Ref{Cdouble}),
+        angle,pos,pos2)
+    return pos2
+end

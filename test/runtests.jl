@@ -115,4 +115,9 @@ end
         @test wobble(jd_high,0,xp,yp,pos) ≈ NOVAS.wobble(jd_high,xp,yp,pos;direction=:itrs2terr)
         @test wobble(jd_high,1,xp,yp,pos) ≈ NOVAS.wobble(jd_high,xp,yp,pos;direction=:terr2itrs)
     end
+    # Random angle
+    angle = rand()
+    @testset "spin" begin
+        @test spin(angle,pos) ≈ NOVAS.spin(angle,pos)
+    end
 end
