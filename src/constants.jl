@@ -34,8 +34,6 @@ const RMASS = [328900.561400, 6023600.0, 408523.71,
 const ASEC360 = 1296000.0
 # Angle conversion constants
 const ASEC2RAD = 4.848136811095359935899141e-6
-const DEG2RAD = 0.017453292519943296
-const RAD2DEG = 57.295779513082321
 
 # "Computed" constants from novas.c
 const xi0  = -0.0166170 * ASEC2RAD
