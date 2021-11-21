@@ -106,4 +106,13 @@ end
         @test sidereal_time(jd_high,jd_low,0.0,1,1,0) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:apparent,method=:equinox,accuracy=:full)
         @test sidereal_time(jd_high,jd_low,0.0,1,1,1) ≈ NOVAS.sidereal_time(jd_high,jd_low,0.0;gst_type=:apparent,method=:equinox,accuracy=:reduced)
     end
+    # Generate CIP poles
+    xp = rand()
+    yp = rand()
+    # Generate random position vector
+    pos = rand(3)
+    @testset "wobble" begin
+        @test wobble(jd_high,0,xp,yp,pos) ≈ NOVAS.wobble(jd_high,xp,yp,pos;direction=:itrs2terr)
+        @test wobble(jd_high,1,xp,yp,pos) ≈ NOVAS.wobble(jd_high,xp,yp,pos;direction=:terr2itrs)
+    end
 end

@@ -160,3 +160,12 @@ function sidereal_time(jd_high::Real,
         jd_high,jd_low,delta_t,gst_type,method,accuracy,gst)
     return gst[]
 end
+
+function wobble(tjd::Real,direction::Int,xp::Real,yp::Real,pos::Vector)
+    pos2 = zeros(Cdouble,3)
+    ccall((:wobble,libnovas),
+        Cvoid,
+        (Cdouble,Cshort,Cdouble,Cdouble,Ref{Cdouble},Ref{Cdouble}),
+        tjd,direction,xp,yp,pos,pos2)
+    return pos2
+end

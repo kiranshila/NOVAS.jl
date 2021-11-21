@@ -246,7 +246,7 @@ Computes quantities related to the orientation of the Earth's rotation axis at J
     t = (jd_tdb - T0) / 36525.0
     # Compute the nutation angles
     dp, de = nutation_angles(t; accuracy = accuracy)
-    c_terms = ee_ct(jd_tdb,zero(typeof(jd_tdb)); accuracy = accuracy) / ASEC2RAD
+    c_terms = ee_ct(jd_tdb, zero(typeof(jd_tdb)); accuracy = accuracy) / ASEC2RAD
     # Apply observed celestial pole offsets FIXME what do we do here?
     d_psi = dp # + PSI_COR
     d_eps = de # + EPS_COR
@@ -310,7 +310,7 @@ right ascension with respect to the true equinox of date.
 @memoize function cio_location(jd_tdb::Real; accuracy::Symbol = :full)
     # NOTE: We are going to calculate the values instead of using the external dep for the time being
     # This results in ref_sys always being 2, true equator and equinox instead of interpolated GCRS
-    ra_cio = -ira_equinox(jd_tdb; accuracy = accuracy, equinox=:true)
+    ra_cio = -ira_equinox(jd_tdb; accuracy = accuracy, equinox = :true)
     return ra_cio
 end
 
@@ -330,19 +330,19 @@ by the celestial intermediate pole and origin.
 @memoize function cio_basis(jd_tdb::Real, ra_cio::Real; accuracy::Symbol = :full)
     # Compute unit vector z towards celestial pole
     z0 = [0.0, 0.0, 1.0]
-    w1 = nutation(jd_tdb,z0;accuracy=accuracy,direction=:true2mean)
+    w1 = nutation(jd_tdb, z0; accuracy = accuracy, direction = :true2mean)
     w2 = precession(jd_tdb, w1, T0)
-    z = frame_tie(w2,:dynamic2icrs)
+    z = frame_tie(w2, :dynamic2icrs)
     # Compute unit vectors x and y
     # First construct unit vector towards CIO in equator and equinox of date system
-    w0 = [cosd(ra_cio*15),sind(ra_cio*15),0]
+    w0 = [cosd(ra_cio * 15), sind(ra_cio * 15), 0]
     # Rotate the vector into the GCRS to form unit vector x
-    w1 = nutation(jd_tdb,w0;accuracy=accuracy,direction=:true2mean)
-    w2 = precession(jd_tdb,w1,T0)
-    x = frame_tie(w2,:dynamic2icrs)
+    w1 = nutation(jd_tdb, w0; accuracy = accuracy, direction = :true2mean)
+    w2 = precession(jd_tdb, w1, T0)
+    x = frame_tie(w2, :dynamic2icrs)
     # Compute unit vector y orthogonal to x and z
     y = z × x
-    return x,y,z
+    return x, y, z
 end
 
 """
@@ -400,12 +400,12 @@ See Chapter 5 in the NOVASC manual for information between equinox and CIO-based
 
 # Optional arguments
 - `gst_type::Symbol=:mean`: Return results as mean (`:mean`) or apparent (`:apparent`) time
-- `method::Symbol=:CIO`: Computation method, CIO-based (`:CIO`) or equinox-based (`:equinox`)
+- `method::Symbol=:CIO`: Computation method, `:CIO`-based or `:equinox`-based
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
 """
 @memoize function sidereal_time(jd_high::Real,
-    jd_low::Real=0.0,
-    delta_t::Real=0.0;
+    jd_low::Real = 0.0,
+    delta_t::Real = 0.0;
     gst_type::Symbol = :mean,
     method::Symbol = :CIO,
     accuracy::Symbol = :full)
@@ -427,9 +427,9 @@ See Chapter 5 in the NOVASC manual for information between equinox and CIO-based
 
     # Compute the equation of the equinoxes if needed, depending upon the input values of `gst_type` and `method`.
     # If not needed, set to zero
-    if ((gst_type == :mean)     && (method == :CIO)) ||
+    if ((gst_type == :mean) && (method == :CIO)) ||
        ((gst_type == :apparent) && (method == :equinox))
-        _,_,ee,_,_ = e_tilt(jd_tdb;accuracy=accuracy)
+        _, _, ee, _, _ = e_tilt(jd_tdb; accuracy = accuracy)
         eqeq = ee * 15
     else
         eqeq = 0
@@ -438,16 +438,16 @@ See Chapter 5 in the NOVASC manual for information between equinox and CIO-based
     if method == :CIO
         # Obtain basis vectors, in the GCRS of the celestial intermediate system
         ra_cio = cio_location(jd_tdb; accuracy = accuracy)
-        x,y,z = cio_basis(jd_tdb,ra_cio;accuracy = accuracy)
+        x, y, z = cio_basis(jd_tdb, ra_cio; accuracy = accuracy)
         # Compute the direction of the true equinox in the GCRS
-        w1 = nutation(jd_tdb,[1,0,0];direction=:true2mean,accuracy=accuracy)
-        w2 = precession(jd_tdb,w1,T0)
-        eq = frame_tie(w2,:dynamic2icrs)
+        w1 = nutation(jd_tdb, [1, 0, 0]; direction = :true2mean, accuracy = accuracy)
+        w2 = precession(jd_tdb, w1, T0)
+        eq = frame_tie(w2, :dynamic2icrs)
         # Compute the hour angle of the equinox w.r.t. the TIO meridian
-        ha_eq = theta - atand(eq⋅y,eq⋅x)
+        ha_eq = theta - atand(eq ⋅ y, eq ⋅ x)
         # For mean, subtract the equation of the equinoxes
         ha_eq -= eqeq / 240
-        ha_eq = rem(ha_eq,360) / 15
+        ha_eq = rem(ha_eq, 360) / 15
         if ha_eq < 0
             ha_eq += 24
         end
@@ -461,6 +461,105 @@ See Chapter 5 in the NOVASC manual for information between equinox and CIO-based
         end
     end
     return gst
+end
+
+"""
+    wobble(tjd,xp,yp,pos)
+
+Corrects a vector in the ITRS (rotating Earth-fixed system)
+for polar motion, and also corrects the longitude origin
+(by a tiny amount) to the Terrestrial Intermediate Origin
+(TIO).  The ITRS vector is thereby transformed to the terrestrial
+intermediate system, based on the true (rotational) equator and
+TIO.  Because the true equator is the plane orthogonal to the
+direction of the Celestial Intermediate Pole (CIP), the components
+of the output vector are referred to z and x axes toward the CIP
+and TIO, respectively.
+
+# Arguments
+-`tjd::Real`: TT or UT1 Julian Date
+-`xp::Real`: Conventionally-defined X coordinate of the CIP in arcseconds
+-`yp::Real`: Conventionally-defined Y coordinate of the CIP in arcseconds
+-`pos::AbstractVector`: Position vector, geocentric equatorial rectangular coordinates
+
+# Optional Arguments
+-`direction::Symbol=:itrs2terr`: Either `:itrs2terr` or `:terr2itrs`
+"""
+function wobble(tjd::Real, xp::Real, yp::Real, pos::AbstractVector; direction::Symbol = :itrs2terr)
+    @assert direction ∈ Set([:itrs2terr, :terr2itrs])
+    xpole = xp * ASEC2RAD
+    ypole = yp * ASEC2RAD
+    # Compute approximate longitude of the TIO
+    t = (tjd - T0) / 36525.0
+    sprime = -47.0e-6 * t
+    tiolon = -sprime * ASEC2RAD
+    # Compute elements of rotation matrix
+    sinx, cosx = sincos(xpole)
+    siny, cosy = sincos(ypole)
+    sinl, cosl = sincos(tiolon)
+
+    xx = cosx * cosl
+    yx = sinx * siny * cosl + cosy * sinl
+    zx = -sinx * cosy * cosl + siny * sinl
+    xy = -cosx * sinl
+    yy = -sinx * siny * sinl + cosy * cosl
+    zy = sinx * cosy * sinl + siny * cosl
+    xz = sinx
+    yz = -cosx * siny
+    zz = cosx * cosy
+
+    rot_mat = [xx yx zx; xy yy zy; xz yz zz]
+
+    # Perform rotation
+    if direction == :itrs2terr
+        return rot_mat * pos
+    elseif direction == :terr2itrs
+        return rot_mat' * pos
+    end
+end
+
+"""
+    ter2cel(jd_ut_high,jd_ut_low,delta_t,vec)
+
+Rotates a vector from the terrestrial to the celestial system. Specifically, it transforms
+a vector in ITRS to GCRS by applying rotations for polar motion, Earth rotation, nutation, precession, and
+the dynamical-to-GCRS frame tie.
+
+# Arguments
+-`jd_ut_high::Real`: High order part of UT1 Julian date
+-`jd_ut_low::Real`: Low order part of UT1 Julian date
+-`delta_t::Real`: Value of TT-UT1 at the input date
+-`vec::AbstractVector`: Position vector, geocentric equatorial rectangular coordinates, reference axes set by `option`
+
+# Optional Arguments
+- `method::Symbol=:CIO`: Computation method, `:CIO`-based or `:equinox`-based
+- `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
+- `option::Symbol=:GRCS`: Sets position vector to be referred to `:GCRS` axes or `:equinox` of date and equator
+- `xp::Real=0`: x coordinate of the celestial intermediate pole in arcseconds
+- `yp::Real=0`: y coordinate of the celestial intermediate pole in arcseconds
+"""
+# FIXME
+function ter2cel(jd_ut_high::Real, jd_ut_low::Real, delta_t::Real, vec::AbstractVector;
+    method::Symbol = :CIO, accuracy::Symbol = :full, option::Symbol = :GCRS, xp::Real = 0, yp::Real = 0)
+    # Compute the TT Julian date
+    jd_ut1 = jd_ut_high + jd_ut_low
+    jd_tt = jd_ut1 + (delta_t / 86400.0)
+    # Compute the TDB Julian date corresponding to the input UT1 Julian date
+    _, secdiff = tdb2tt(jd_tt)
+    jd_tdb = jd_tt + secdiff / 86400.0
+    if method == :CIO
+        # Apply polar motion, transforming the vector to the terrestrial intermediate system
+        if iszero(xp) && iszero(yp)
+            v1 = copy(vec)
+        else
+            v1 = wobble(jd_tdb, 0, xp, yp, vec1)
+        end
+
+
+    elseif method == :equinox
+
+    end
+
 end
 
 """
@@ -484,8 +583,9 @@ struct OnSurface
     temperature::Real
     pressure::Real
 end
+# FIXME Should this be parameterized?
 
-OnSurface(lat::T,lon::T,h::T) where {T <: Real} = OnSurface(lat,lon,h,zero(T),zero(T)) 
+OnSurface(lat::T, lon::T, h::T) where {T<:Real} = OnSurface(lat, lon, h, zero(T), zero(T))
 
 """
     equ2hor(jd_ut1,delta_t,ra,dec)
@@ -496,21 +596,55 @@ that properly accounts for polar motion, which is significant at
 the sub-arcsecond level.  This function can also adjust
 coordinates for atmospheric refraction.
 
+`xp` and `yp` are only needed if sub-arcsecond accuracy is needed.
+
 # Arguments
 - `jd_ut1::Real`: UT1 Julian Date
 - `delta_t::Real`: Difference TT-UT1 ast `jd_ut1` in seconds
 - `ra::Real`: Topocentric right ascension in hours, referred to true equator
 - `dec::Real`: Topocentric declination in degrees, referred to true equatior
-
+- `location::OnSurface`: Structure containing observer's location details
 
 # Optional arguments
-- `gst_type::Symbol=:mean`: Return results as mean (`:mean`) or apparent (`:apparent`) time
-- `method::Symbol=:CIO`: Computation method, CIO-based (`:CIO`) or equinox-based (`:equinox`)
 - `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
-  
-"""
-function equ2hor(ut1)
+- `xp::Real=0`: x coordinate of the celestial intermediate pole in arcseconds
+- `yp::Real=0`: y coordinate of the celestial intermediate pole in arcseconds
+- `ref_option::Symbol=:none`: Whether to include refraction in the calculations.
+Either `:none`, `:standard` to use standard atmospheric conditions, or `:location` to use the conditions
+included in `location`.
 
+# Returns
+`(zd,az,rar,decr)` where
+-`zd`: Topocentric zenith distance in degrees
+-`az`: Topocentric azimuth (east of north) in degrees
+-`rar`: Topocentric RA of object of interest in hours
+-`decr`: Topocentric declination of object of interest in degrees
+"""
+# FIXME
+function equ2hor(jd_ut1::Real,
+    delta_t::Real,
+    ra::Real,
+    dec::Real,
+    location::OnSurface;
+    accuracy::Symbol = :full,
+    xp::Real = 0.0,
+    yp::Real = 0.0,
+    ref_option::Symbol = :none)
+    @assert ref_option ∈ Set([:none, :standard, :location])
+
+    # Trig it up
+    sinlat, coslat = sincosd(location.latitude)
+    sinlon, coslon = sincosd(location.longitude)
+    sindc, cosdc = sincosd(dec)
+    sinra, cosra = sincosd(ra * 15)
+    # Set up orthonomarl basis vectors in local Earth-fixed system
+    uze = [coslat * coslon, coslat * sinlon, sinlat]
+    # Define vector towards local north in Earth-fixed system
+    une = [-sinlat * coslon, -sinlat * sinlon, coslat]
+    # Define vector towards local west in Earth-fixed system
+    uwe = [sinlon, -coslon, 0]
+    # Obtain vectors in celestial system and rotate earth-fixed orthonormal basis to celestial system
+    uz = ter2cel(jd_ut1; accuracy = accuracy, xp = xp, yp = yp)
 end
 
 # Function exports
@@ -525,5 +659,6 @@ export sidereal_time,
     precession,
     frame_tie,
     cio_location,
-    cio_basis
+    cio_basis,
+    wobble
 end
