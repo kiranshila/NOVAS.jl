@@ -27,7 +27,7 @@ sidereal_time(jd_high,jd_low,ΔT)
 ```
 And because this is Julia, we can easily compose with other libraries, like [Measurements.jl](https://github.com/JuliaPhysics/Measurements.jl).
 For example, we can add [uncertainty](https://eclipse.gsfc.nasa.gov/SEcat5/uncertainty.html) data to ΔT and see how it impacts our results
-```@example
+```@example sidereal
 using Measurements
 sidereal_time(jd_high,jd_low,ΔT±3)
 ```
