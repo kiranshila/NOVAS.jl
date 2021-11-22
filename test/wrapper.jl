@@ -205,14 +205,6 @@ function refract(location::NOVAS.OnSurface,ref_option::Int,zd_obs::Real)
      location,ref_option,zd_obs)
 end
 
-mutable struct on_surface_t
-    latitude::Cdouble
-    longitude::Cdouble
-    height::Cdouble
-    temperature::Cdouble
-    pressure::Cdouble
-end
-
 function equ2hor(jd_ut1::Real,
     delta_t::Real,
     accuracy::Int,

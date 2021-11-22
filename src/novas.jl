@@ -627,12 +627,12 @@ calculation of refraction.
 - `temperature::Real=0`: Temperature (degrees Celsius)
 - `pressure::Real=0`: Atmospheric pressure (millibars)
 """
-struct OnSurface{T<:Real}
-    latitude::T
-    longitude::T
-    height::T
-    temperature::T
-    pressure::T
+mutable struct OnSurface
+    latitude::Cdouble
+    longitude::Cdouble
+    height::Cdouble
+    temperature::Cdouble
+    pressure::Cdouble
 end
 
 OnSurface(lat::T, lon::T, h::T) where {T<:Real} = OnSurface(lat, lon, h, zero(T), zero(T))
