@@ -35,6 +35,6 @@ That being the case, this software will be covered under the MIT License as the 
 
 ## Original NOVAS Authors
 
-We would like to thank the NOVAS authors for their hard work in creating the excellent software for which this is based.
+We would like to thank the NOVAS authors for their hard work in creating the excellent software for which this is based. More information can be found on the [NOVAS website](http://www.usno.navy.mil/USNO/astronomical-applications/software-products/novas).
 
-**Barron, E. G., Kaplan, G. H., Bangert, J., Bartlett, J. L., Puatua, W., Harris, W., & Barrett, P. (2011)** `"Naval Observatory Vector Astrometry Software (NOVAS) Version 3.1, Introducing a Python Edition," <http://aa.usno.navy.mil/software/novas/novas_py/novas.pdf>`_ **Bull. AAS, 43, 2011.**
+Kaplan, G., Bangert, J., Bartlett, J., Puatua, W., & Monet, A. 2009, User’s Guide to NOVAS 3.0, USNO Circular 180 (Washington, DC: USNO) 
