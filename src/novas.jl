@@ -194,13 +194,13 @@ from observations and published by the IERS.
 This function differs from the C version, where this returns the corrections instead of mutating global state.
 
 # Arguments
--`tjd::Real`: TDB or TT Julian date for pole offsets
--`type::Symbol=:angular`: Type of pole offset. `:angular` for corrections to angular 
+- `tjd::Real`: TDB or TT Julian date for pole offsets
+- `type::Symbol=:angular`: Type of pole offset. `:angular` for corrections to angular 
     coordinates of modeled pole referred to mean ecliptic of date, that is, 
     delta-delta-psi and delta-delta-epsilon. `:positional` for corrections to components
     of modeled pole unit vector referred to GCRS axes, that is, dx and dy.
--`dople1`: Value of celestial pole offset in first coordinate.
--`dpole2`: Value of celestial pole offset is second coordinate.
+- `dople1`: Value of celestial pole offset in first coordinate.
+- `dpole2`: Value of celestial pole offset is second coordinate.
 """
 function cel_pole(tjd::Real, type::Symbol, dpole1::Real, dpole2::Real)
     @assert type ∈ Set([:angular, :positional])
@@ -487,13 +487,13 @@ of the output vector are referred to z and x axes toward the CIP
 and TIO, respectively.
 
 # Arguments
--`tjd::Real`: TT or UT1 Julian Date
--`xp::Real`: Conventionally-defined X coordinate of the CIP in arcseconds
--`yp::Real`: Conventionally-defined Y coordinate of the CIP in arcseconds
--`pos::AbstractVector`: Position vector, geocentric equatorial rectangular coordinates
+- `tjd::Real`: TT or UT1 Julian Date
+- `xp::Real`: Conventionally-defined X coordinate of the CIP in arcseconds
+- `yp::Real`: Conventionally-defined Y coordinate of the CIP in arcseconds
+- `pos::AbstractVector`: Position vector, geocentric equatorial rectangular coordinates
 
 # Optional Arguments
--`direction::Symbol=:itrs2terr`: Either `:itrs2terr` or `:terr2itrs`
+- `direction::Symbol=:itrs2terr`: Either `:itrs2terr` or `:terr2itrs`
 """
 function wobble(tjd::Real, xp::Real, yp::Real, pos::AbstractVector; direction::Symbol = :itrs2terr)
     @assert direction ∈ Set([:itrs2terr, :terr2itrs])
@@ -534,8 +534,8 @@ end
 Transfroms a vector from one coordiate system to another with the same origin and axes rotated about the z-axis.
 
 # Arguments
--`angle::Real`: Angle of rotation, positive counterclockwise when viewed from +z, in degrees
--`pos::AbstractVector`: Position Vector
+- `angle::Real`: Angle of rotation, positive counterclockwise when viewed from +z, in degrees
+- `pos::AbstractVector`: Position Vector
 """
 function spin(angle::Real, pos::AbstractVector)
     sinang, cosang = sincosd(angle)
@@ -560,10 +560,10 @@ a vector in ITRS to GCRS by applying rotations for polar motion, Earth rotation,
 the dynamical-to-GCRS frame tie.
 
 # Arguments
--`jd_ut_high::Real`: High order part of UT1 Julian date
--`jd_ut_low::Real`: Low order part of UT1 Julian date
--`delta_t::Real`: Value of TT-UT1 at the input date
--`vec::AbstractVector`: Position vector, geocentric equatorial rectangular coordinates, reference axes set by `option`
+- `jd_ut_high::Real`: High order part of UT1 Julian date
+- `jd_ut_low::Real`: Low order part of UT1 Julian date
+- `delta_t::Real`: Value of TT-UT1 at the input date
+- `vec::AbstractVector`: Position vector, geocentric equatorial rectangular coordinates, reference axes set by `option`
 
 # Optional Arguments
 - `method::Symbol=:CIO`: Computation method, `:CIO`-based or `:equinox`-based
@@ -698,10 +698,10 @@ included in `location`.
 
 # Returns
 `(zd,az,rar,decr)` where
--`zd`: Topocentric zenith distance in degrees
--`az`: Topocentric azimuth (east of north) in degrees
--`rar`: Topocentric RA of object of interest in hours
--`decr`: Topocentric declination of object of interest in degrees
+- `zd`: Topocentric zenith distance in degrees
+- `az`: Topocentric azimuth (east of north) in degrees
+- `rar`: Topocentric RA of object of interest in hours
+- `decr`: Topocentric declination of object of interest in degrees
 """
 function equ2hor(jd_ut1::Real,
     delta_t::Real,
@@ -713,7 +713,10 @@ function equ2hor(jd_ut1::Real,
     yp::Real = 0.0,
     ref_option::Symbol = :none)
     @assert ref_option ∈ Set([:none, :standard, :location])
-
+    # Initialize things
+    zd = 0.0
+    az = 0.0
+    refr = 0.0
     # Trig it up
     sinlat, coslat = sincosd(location.latitude)
     sinlon, coslon = sincosd(location.longitude)
@@ -724,20 +727,20 @@ function equ2hor(jd_ut1::Real,
     # Define vector towards local north in Earth-fixed system
     une = [-sinlat * coslon, -sinlat * sinlon, coslat]
     # Define vector towards local west in Earth-fixed system
-    uwe = [sinlon, -coslon, 0]
+    uwe = [sinlon, -coslon, 0.0]
     # Obtain vectors in celestial system and rotate earth-fixed orthonormal basis to celestial system
-    uz = ter2cel(jd_ut1, 0.0, delta_t, uze; accuracy = accuracy, xp = xp, yp = yp)
-    un = ter2cel(jd_ut1, 0.0, delta_t, une; accuracy = accuracy, xp = xp, yp = yp)
-    uw = ter2cel(jd_ut1, 0.0, delta_t, uwe; accuracy = accuracy, xp = xp, yp = yp)
+    uz = ter2cel(jd_ut1, 0.0, delta_t, uze; accuracy = accuracy, xp = xp, yp = yp, option = :equinox, method = :equinox)
+    un = ter2cel(jd_ut1, 0.0, delta_t, une; accuracy = accuracy, xp = xp, yp = yp, option = :equinox, method = :equinox)
+    uw = ter2cel(jd_ut1, 0.0, delta_t, uwe; accuracy = accuracy, xp = xp, yp = yp, option = :equinox, method = :equinox)
     # Define unit vector `p` towards object in celestial system w.r.t equator and equinox of date
-    p = @SVector [cosdc * cosra, cosdc * sinra, sindc]
+    p = [cosdc * cosra, cosdc * sinra, sindc]
     # Compute coordinates of object w.r.t orthonomral basis
     # Compuute projected components of `p` onto rotated Earth-fixed basis vectors
     pz = p ⋅ uz
     pn = p ⋅ un
     pw = p ⋅ uw
     # Compute azimuth and zenith distance
-    proj = sqrt(pn * pn + pw * pw)
+    proj = sqrt(pn^2 + pw^2)
     if proj > 0
         az = -atand(pw, pn)
     end
@@ -755,15 +758,14 @@ function equ2hor(jd_ut1::Real,
         # Get refraction in zenith distance
         # This is iterative because refraction algorithms are always a function of observed zenith
         zd0 = zd
-        zd1 = zd
-        refr = 0.0
-        while abs(zd - zd1) > 3.0e5
+        while true
             zd1 = zd
             refr = refract(location, zd; ref_option = ref_option)
             zd = zd0 - refr
+            abs(zd - zd1) > 3.0e5 ||  break
         end
         # Apply refraction to celestial coordinates of object
-        if refr > 0 && zd > 3.0e-4
+        if (refr > 0) && (zd > 3.0e-4)
             # Shift position vector of object in celestial system to account for refraction
             sinzd, coszd = sincosd(zd)
             sinzd0, coszd0 = sincod(zd0)
