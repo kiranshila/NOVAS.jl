@@ -16,7 +16,9 @@ function __init__()
         "1c7ac5c46f49dbfc6e140a34228067b480796ac11e3348ab41905e5af119f708";
         post_fetch_method = unpack
     ))
-    register(ManualDataDep("nu2000k",
+    # I would like to use a ManualDataDep here, but that doesn't work for unregistered packages for some reason
+    # Once we register, we will move those constants back here
+    register(DataDep("nu2000k",
         """
         NU2000K Nutation Model
         Author: George H. Kaplan
@@ -25,7 +27,10 @@ function __init__()
         The 488-term nu2000k nutation model utilizes the luni-solar fundamental argument, planetary longitude, and general 
         precession in longitude expressions from Simon et al. (1994) throughout. The NU2000K Nutation Model is fully documented in the 
         United States Naval Observatory's NOVAS-C 3.0 software package.
-        """))
+        """,
+        "https://github.com/kiranshila/nu2000k/archive/refs/heads/main.zip",
+        "48b070d61c464da2abcea6a2221831e8ddd78b8d611bb4d9bcc712a50be9eeff";
+        post_fetch_method = unpack))
     # Eagerly grab data deps
     datadep"2003IERSConventions"
     datadep"nu2000k"
