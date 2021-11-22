@@ -1,4 +1,7 @@
 # Register and Download DataDeps *before* the rest of modulue init, as we need them for the const declarations
+# Silently accept them, FIXME?
+
+ENV["DATADEPS_ALWAYS_ACCEPT"]="true"
 
 register(DataDep("2003IERSConventions",
     """
