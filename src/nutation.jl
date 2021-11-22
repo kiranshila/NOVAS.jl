@@ -1,8 +1,5 @@
 export iau2000a,nu2000k,fund_args
 
-# Preallocate constants
-const nals_k, cls_k, napl_k, cpl_k = read_nu2000k()
-const nals_a, cls_a, napl_a, cpl_a = read_iau2000a()
 
 """
     iau2000a(jd)

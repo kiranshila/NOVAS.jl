@@ -76,7 +76,7 @@ Computes the "complementary terms" of the equation of the equinoxes.
 function ee_ct(jd_high::T, jd_low::T; accuracy::Symbol = :full) where {T<:Real}
     t = ((jd_high - T0) + jd_low) / 36525.0
 
-    ke0, ke1, se0, se1 = read_cterms()
+    
 
     fa = zeros(T, 14)
 
@@ -162,3 +162,8 @@ function ee_ct(jd_high::T, jd_low::T; accuracy::Symbol = :full) where {T<:Real}
     end
     return c_terms * ASEC2RAD
 end
+
+# Preallocate constants
+const ke0, ke1, se0, se1 = read_cterms()
+const nals_k, cls_k, napl_k, cpl_k = read_nu2000k()
+const nals_a, cls_a, napl_a, cpl_a = read_iau2000a()
