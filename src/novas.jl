@@ -749,11 +749,14 @@ function equ2hor(jd_ut1::Real,
     end
     zd = atand(proj, pz)
     # Apply atmospheric refraction if requested
+    rar = ra
+    decr = dec
     if ref_option != :none
         # Get refraction in zenith distance
         # This is iterative because refraction algorithms are always a function of observed zenith
         zd0 = zd
         zd1 = zd
+        refr = 0.0
         while abs(zd - zd1) > 3.0e5
             zd1 = zd
             refr = refract(location, zd; ref_option = ref_option)
@@ -779,9 +782,6 @@ function equ2hor(jd_ut1::Real,
             end
             decr = atand(pr[3], proj)
         end
-    else
-        rar = ra
-        decr = dec
     end
     return zd, az, rar, decr
 end

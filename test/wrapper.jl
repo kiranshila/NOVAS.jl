@@ -204,3 +204,23 @@ function refract(location::NOVAS.OnSurface,ref_option::Int,zd_obs::Real)
      (Ref{NOVAS.OnSurface},Cshort,Cdouble),
      location,ref_option,zd_obs)
 end
+
+function equ2hor(jd_ut1::Real,
+    delta_t::Real,
+    accuracy::Int,
+    xp::Real,
+    yp::Real,
+    location::NOVAS.OnSurface,
+    ra::Real,
+    dec::Real,
+    ref_option::Int)
+    zd = Ref{Cdouble}(0.0)
+    az = Ref{Cdouble}(0.0)
+    rar = Ref{Cdouble}(0.0)
+    decr = Ref{Cdouble}(0.0)
+    ccall((:equ2hor,libnovas),
+        Cvoid,
+        (Cdouble,Cdouble,Cshort,Cdouble,Cdouble,Ref{NOVAS.OnSurface},Cdouble,Cdouble,Cshort,Ref{Cdouble},Ref{Cdouble},Ref{Cdouble},Ref{Cdouble}),
+        jd_ut1,delta_t,accuracy,xp,yp,location,ra,dec,ref_option,zd,az,rar,decr)
+    return zd[],az[],rar[],decr[]
+end

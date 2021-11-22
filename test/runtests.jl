@@ -133,15 +133,29 @@ end
         @test ter2cel(jd_high, jd_low, delta_t, 1, 1, 0, 0.0, 0.0, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :reduced, option = :GCRS)
     end
     # Generate a random location
-    lat = rand(Cdouble)*180 - 90
-    lon = rand(Cdouble)*180 - 90
-    alt = rand(Cdouble)*8000
-    temp = rand(Cdouble)*50
-    pressure = rand(Cdouble)*1000
-    location = NOVAS.OnSurface(lat,lon,alt,temp,pressure)
-    zd = rand()*90
+    lat = rand(Cdouble) * 180 - 90
+    lon = rand(Cdouble) * 180 - 90
+    alt = rand(Cdouble) * 8000
+    temp = rand(Cdouble) * 50
+    pressure = rand(Cdouble) * 1000
+    location = NOVAS.OnSurface(lat, lon, alt, temp, pressure)
+    zd = rand() * 90
     @testset "refract" begin
-        @test refract(location,1,zd) ≈ NOVAS.refract(location,zd;ref_option=:standard)
-        @test refract(location,2,zd) ≈ NOVAS.refract(location,zd;ref_option=:location)
+        @test refract(location, 1, zd) ≈ NOVAS.refract(location, zd; ref_option = :standard)
+        @test refract(location, 2, zd) ≈ NOVAS.refract(location, zd; ref_option = :location)
+    end
+    # Generate random ra and dec
+    ra = rand() * 24
+    dec = rand() * 180 - 90
+    @testset "equ2hor" begin
+        @test equ2hor(jd_high, delta_t, 0, xp, yp, location, ra, dec, 0) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :none)
+        @test equ2hor(jd_high, delta_t, 0, xp, yp, location, ra, dec, 1) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :standard)
+        @test equ2hor(jd_high, delta_t, 0, xp, yp, location, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :location)
+        @test equ2hor(jd_high, delta_t, 1, xp, yp, location, ra, dec, 0) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, xp = xp, yp = yp, ref_option = :none)
+        @test equ2hor(jd_high, delta_t, 1, xp, yp, location, ra, dec, 1) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, xp = xp, yp = yp, ref_option = :standard)
+        @test equ2hor(jd_high, delta_t, 1, xp, yp, location, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, xp = xp, yp = yp, ref_option = :location)
+        # And with zero polar motion
+        @test equ2hor(jd_high, delta_t, 0, 0.0, 0.0, location, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, ref_option = :location)
+        @test equ2hor(jd_high, delta_t, 1, 0.0, 0.0, location, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, ref_option = :location)
     end
 end
