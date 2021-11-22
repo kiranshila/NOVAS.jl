@@ -16,5 +16,17 @@ function __init__()
         "1c7ac5c46f49dbfc6e140a34228067b480796ac11e3348ab41905e5af119f708";
         post_fetch_method = unpack
     ))
+    register(ManualDataDep("nu2000k",
+        """
+        NU2000K Nutation Model
+        Author: George H. Kaplan
+        Website: https://www.usno.navy.mil/USNO/astronomical-applications/software-products/novas/novas-c
+
+        The 488-term nu2000k nutation model utilizes the luni-solar fundamental argument, planetary longitude, and general 
+        precession in longitude expressions from Simon et al. (1994) throughout. The NU2000K Nutation Model is fully documented in the 
+        United States Naval Observatory's NOVAS-C 3.0 software package.
+        """))
+    # Eagerly grab data deps
     datadep"2003IERSConventions"
+    datadep"nu2000k"
 end

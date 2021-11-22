@@ -46,10 +46,10 @@ Reads the included nu2000k nutation model into a Matrix and returns them as
 working with the nu2000k data.
 """
 @memoize function read_nu2000k()
-    napl = readdlm("data/nu2000k_napl.csv", ',')
-    nals = readdlm("data/nu2000k_nals.csv", ',')
-    cpl = readdlm("data/nu2000k_cpl.csv", ',')
-    cls = readdlm("data/nu2000k_cls.csv", ',')
+    napl = readdlm(datadep"nu2000k/napl.csv", ',')
+    nals = readdlm(datadep"nu2000k/nals.csv", ',')
+    cpl = readdlm(datadep"nu2000k/cpl.csv", ',')
+    cls = readdlm(datadep"nu2000k/cls.csv", ',')
     return nals, cls, napl, cpl
 end
 
