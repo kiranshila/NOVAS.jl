@@ -1,5 +1,9 @@
 export iau2000a,nu2000k,fund_args
 
+# Preallocate constants
+const nals_k, cls_k, napl_k, cpl_k = read_nu2000k()
+const nals_a, cls_a, napl_a, cpl_a = read_iau2000a()
+
 """
     iau2000a(jd)
 
@@ -17,8 +21,6 @@ Compute the forced nutation of the non-rigid earth based on the IAU 2000A nutati
 function iau2000a(jd_high::Real, jd_low::Real=0.0)
     # Interval between fundamental epoch J2000.0 and given date
     t = ((jd_high - T0) + jd_low) / 36525.0
-
-    nals_a, cls_a, napl_a, cpl_a = iau2000a_statics()
 
     # Compute fundamental arguments in radians
     a = fund_args(t)
@@ -107,8 +109,6 @@ Compute the forced nutation of the non-rigid earth based on the NU2000K nutation
 function nu2000k(jd_high::Real, jd_low::Real=0.0)
     # Interval between fundamental epoch J2000.0 and given date
     t = ((jd_high - T0) + jd_low) / 36525.0
-
-    nals_k, cls_k, napl_k, cpl_k = read_nu2000k()
 
     # Compute fundamental arguments in radians
     a = fund_args(t)

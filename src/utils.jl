@@ -25,27 +25,7 @@ function fund_args(t::Real)
     return rem.([l, l′, F, D, Ω], ASEC360) .* ASEC2RAD
 end
 
-"""
-    read_iau2000a()
-
-Reads the included iau2000a nutation model into a Matrix and returns them as
-`(planetary_nutations,lunisolar_nutations)`. This is meant to be a high-level interface for
-working with the iau2000a data.
-"""
-function read_iau2000a()
-    ls_data = readdlm(datadep"2003IERSConventions/chapter5/tab5.3a.txt"; comment_char = '*', comments = true)[1:678, :]
-    pl_data = readdlm(datadep"2003IERSConventions/chapter5/tab5.3b.txt"; skipstart = 5)
-    return (pl_data, ls_data)
-end
-
-"""
-    read_nu2000k()
-
-Reads the included nu2000k nutation model into a Matrix and returns them as
-`(planetary_nutations,lunisolar_nutations)`. This is meant to be a high-level interface for
-working with the nu2000k data.
-"""
-@memoize function read_nu2000k()
+function read_nu2000k()
     napl = readdlm(datadep"nu2000k/napl.csv", ',')
     nals = readdlm(datadep"nu2000k/nals.csv", ',')
     cpl = readdlm(datadep"nu2000k/cpl.csv", ',')
@@ -53,21 +33,17 @@ working with the nu2000k data.
     return nals, cls, napl, cpl
 end
 
-@memoize function iau2000a_statics()
-    planetary, lunisolar = read_iau2000a()
-    nals = lunisolar[:,1:5]                     # [:l,:l′,:F,:D,:Ω]
-    cls = lunisolar[:,[7,8,11,9,10,13]] .* 1e4  # [:A, :A′, :A″, :B, :B′, :B″]
-    napl = planetary[:,2:15]                    # [:l, :l′, :F, :D, :Ω, :Me, :Ve, :E, :Ma, :J, :Sa, :U, :Ne, :pA]
-    cpl = planetary[:,17:20] .* 1e4             # [:A, :A″, :B, :B″]
+function read_iau2000a()
+    lunisolar = readdlm(datadep"2003IERSConventions/chapter5/tab5.3a.txt"; comment_char = '*', comments = true)[1:678, :]
+    planetary = readdlm(datadep"2003IERSConventions/chapter5/tab5.3b.txt"; skipstart = 5)
+    nals = lunisolar[1:678,1:5]                      # [:l,:l′,:F,:D,:Ω]
+    cls  = lunisolar[1:678,[7,8,11,9,10,13]] .* 1e4  # [:A, :A′, :A″, :B, :B′, :B″]
+    napl = planetary[1:687,2:15]                    # [:l, :l′, :F, :D, :Ω, :Me, :Ve, :E, :Ma, :J, :Sa, :U, :Ne, :pA]
+    cpl  = planetary[1:687,17:20] .* 1e4             # [:A, :A″, :B, :B″]
     return nals, cls, napl, cpl
 end
 
-"""
-    read_cterms()
-
-Reads the included complementary term constants.
-"""
-@memoize function read_cterms()
+function read_cterms()
     cterms = readdlm(datadep"2003IERSConventions/chapter5/tab5.4.txt"; comment_char = 'j', comments = true, skipstart = 50)
     ke0 = cterms[1:33, 4:17]
     ke1 = cterms[34, 4:17]
