@@ -1,15 +1,4 @@
-function iau2000a_statics()
-    planetary, lunisolar = read_iau2000a()
-    nals = lunisolar[:,1:5]                     # [:l,:l′,:F,:D,:Ω]
-    cls = lunisolar[:,[7,8,11,9,10,13]] .* 1e4  # [:A, :A′, :A″, :B, :B′, :B″]
-    napl = planetary[:,2:15]                    # [:l, :l′, :F, :D, :Ω, :Me, :Ve, :E, :Ma, :J, :Sa, :U, :Ne, :pA]
-    cpl = planetary[:,17:20] .* 1e4             # [:A, :A″, :B, :B″]
-    return nals, cls, napl, cpl
-end
-
-# Keep these around
-const nals_a, cls_a, napl_a, cpl_a = iau2000a_statics()
-const nals_k, cls_k, napl_k, cpl_k = read_nu2000k()
+export iau2000a,nu2000k,fund_args
 
 """
     iau2000a(jd)
@@ -28,6 +17,8 @@ Compute the forced nutation of the non-rigid earth based on the IAU 2000A nutati
 function iau2000a(jd_high::Real, jd_low::Real=0.0)
     # Interval between fundamental epoch J2000.0 and given date
     t = ((jd_high - T0) + jd_low) / 36525.0
+
+    nals_a, cls_a, napl_a, cpl_a = iau2000a_statics()
 
     # Compute fundamental arguments in radians
     a = fund_args(t)
@@ -117,6 +108,8 @@ function nu2000k(jd_high::Real, jd_low::Real=0.0)
     # Interval between fundamental epoch J2000.0 and given date
     t = ((jd_high - T0) + jd_low) / 36525.0
 
+    nals_k, cls_k, napl_k, cpl_k = read_nu2000k()
+
     # Compute fundamental arguments in radians
     a = fund_args(t)
 
@@ -177,5 +170,3 @@ function nu2000k(jd_high::Real, jd_low::Real=0.0)
     # Return result!
     return (Δϕ_ls + Δϕ_pl, Δε_ls + Δε_pl) .* scaling_factor
 end
-
-export iau2000a,nu2000k,fund_args

@@ -1,4 +1,4 @@
-using DelimitedFiles
+export fund_args, norm_ang, ee_ct
 
 """
     fund_args(t)
@@ -33,9 +33,8 @@ Reads the included iau2000a nutation model into a Matrix and returns them as
 working with the iau2000a data.
 """
 function read_iau2000a()
-    # Read planetary nutation terms
-    ls_data = readdlm("data/tab5.3a.txt"; comment_char = '*', comments = true)[1:678, :]
-    pl_data = readdlm("data/tab5.3b.txt"; skipstart = 5)
+    ls_data = readdlm(datadep"2003IERSConventions/chapter5/tab5.3a.txt"; comment_char = '*', comments = true)[1:678, :]
+    pl_data = readdlm(datadep"2003IERSConventions/chapter5/tab5.3b.txt"; skipstart = 5)
     return (pl_data, ls_data)
 end
 
@@ -46,11 +45,20 @@ Reads the included nu2000k nutation model into a Matrix and returns them as
 `(planetary_nutations,lunisolar_nutations)`. This is meant to be a high-level interface for
 working with the nu2000k data.
 """
-function read_nu2000k()
+@memoize function read_nu2000k()
     napl = readdlm("data/nu2000k_napl.csv", ',')
     nals = readdlm("data/nu2000k_nals.csv", ',')
     cpl = readdlm("data/nu2000k_cpl.csv", ',')
     cls = readdlm("data/nu2000k_cls.csv", ',')
+    return nals, cls, napl, cpl
+end
+
+@memoize function iau2000a_statics()
+    planetary, lunisolar = read_iau2000a()
+    nals = lunisolar[:,1:5]                     # [:l,:l′,:F,:D,:Ω]
+    cls = lunisolar[:,[7,8,11,9,10,13]] .* 1e4  # [:A, :A′, :A″, :B, :B′, :B″]
+    napl = planetary[:,2:15]                    # [:l, :l′, :F, :D, :Ω, :Me, :Ve, :E, :Ma, :J, :Sa, :U, :Ne, :pA]
+    cpl = planetary[:,17:20] .* 1e4             # [:A, :A″, :B, :B″]
     return nals, cls, napl, cpl
 end
 
@@ -59,8 +67,8 @@ end
 
 Reads the included complementary term constants.
 """
-function read_cterms()
-    cterms = readdlm("data/cterms.txt")
+@memoize function read_cterms()
+    cterms = readdlm(datadep"2003IERSConventions/chapter5/tab5.4.txt"; comment_char = 'j', comments = true, skipstart = 50)
     ke0 = cterms[1:33, 4:17]
     ke1 = cterms[34, 4:17]
     se0 = cterms[1:33, 2:3] .* 1e-6
@@ -68,17 +76,13 @@ function read_cterms()
     return ke0, ke1, se0, se1
 end
 
-# Keep these around
-const ke0, ke1, se0, se1 = read_cterms()
-
-
 """
     norm_ang(θ)
 
 Normalizes an angle into range 0 <= θ <= 2π
 """
 function norm_ang(angle::Real)
-    rem2pi(angle,RoundDown)
+    rem2pi(angle, RoundDown)
 end
 
 """
@@ -93,15 +97,17 @@ Computes the "complementary terms" of the equation of the equinoxes.
 # Optional Arguments
 - `accuracy::Symbol=:full`: Sets the accuracy level of `:full` or `:reduced`
 """
-function ee_ct(jd_high::T, jd_low::T ; accuracy::Symbol = :full) where {T<:Real}
+function ee_ct(jd_high::T, jd_low::T; accuracy::Symbol = :full) where {T<:Real}
     t = ((jd_high - T0) + jd_low) / 36525.0
+
+    ke0, ke1, se0, se1 = read_cterms()
 
     fa = zeros(T, 14)
 
     if accuracy == :full
         # Fundamental arguments
         # Mean anomaly of the moon
-        fa[1] = norm_ang((485868.249036 + (715923.2178 + (31.8792 + (0.051635 + (-0.00024470) * t) * t) * t) * t) * ASEC2RAD +  rem(1325.0 * t, 1.0) * 2π)
+        fa[1] = norm_ang((485868.249036 + (715923.2178 + (31.8792 + (0.051635 + (-0.00024470) * t) * t) * t) * t) * ASEC2RAD + rem(1325.0 * t, 1.0) * 2π)
         # Mean anomaly of the Sun
         fa[2] = norm_ang((1287104.793048 +
                           (1292581.0481 +
@@ -111,7 +117,7 @@ function ee_ct(jd_high::T, jd_low::T ; accuracy::Symbol = :full) where {T<:Real}
                              *
                              t) * t) * t) * t) * ASEC2RAD
                          +
-                          rem(99.0 * t, 1.0) * 2π)
+                         rem(99.0 * t, 1.0) * 2π)
         # Mean Longitude of the Moon minus Mean Longitude of the Ascending Node of the Moon.
         fa[3] = norm_ang((335779.526232 +
                           (295262.8478 +
@@ -121,7 +127,7 @@ function ee_ct(jd_high::T, jd_low::T ; accuracy::Symbol = :full) where {T<:Real}
                              *
                              t) * t) * t) * t) * ASEC2RAD
                          +
-                          rem(1342.0 * t, 1.0) * 2π)
+                         rem(1342.0 * t, 1.0) * 2π)
         # Mean Elongation of the Moon from the Sun.
         fa[4] = norm_ang((1072260.703692 +
                           (1105601.2090 +
@@ -131,7 +137,7 @@ function ee_ct(jd_high::T, jd_low::T ; accuracy::Symbol = :full) where {T<:Real}
                              *
                              t) * t) * t) * t) * ASEC2RAD
                          +
-                          rem(1236.0 * t, 1.0) * 2π)
+                         rem(1236.0 * t, 1.0) * 2π)
         # Mean Longitude of the Ascending Node of the Moon.
         fa[5] = norm_ang((450160.398036 +
                           (-482890.5431 +
@@ -141,7 +147,7 @@ function ee_ct(jd_high::T, jd_low::T ; accuracy::Symbol = :full) where {T<:Real}
                              *
                              t) * t) * t) * t) * ASEC2RAD
                          +
-                          rem(-5.0 * t, 1.0) * 2π)
+                         rem(-5.0 * t, 1.0) * 2π)
         fa[6] = norm_ang(4.402608842 + 2608.7903141574 * t)
         fa[7] = norm_ang(3.176146697 + 1021.3285546211 * t)
         fa[8] = norm_ang(1.753470314 + 628.3075849991 * t)
@@ -171,14 +177,12 @@ function ee_ct(jd_high::T, jd_low::T ; accuracy::Symbol = :full) where {T<:Real}
     elseif accuracy == :reduced
         fa2 = fund_args(t)
         c_terms = 2640.96e-6 * sin(fa2[5]) + 63.52e-6 * sin(2.0 * fa2[5]) +
-                    11.75e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + 3.0 * fa2[5]) +
-                    11.21e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + fa2[5]) -
-                     4.55e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + 2.0 * fa2[5]) +
-                     2.02e-6 * sin(2.0 * fa2[3] + 3.0 * fa2[5]) +
-                     1.98e-6 * sin(2.0 * fa2[3] + fa2[5]) -
-                     1.72e-6 * sin(3.0 * fa2[5]) - 0.87e-6 * t * sin(fa2[5])
+                  11.75e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + 3.0 * fa2[5]) +
+                  11.21e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + fa2[5]) -
+                  4.55e-6 * sin(2.0 * fa2[3] - 2.0 * fa2[4] + 2.0 * fa2[5]) +
+                  2.02e-6 * sin(2.0 * fa2[3] + 3.0 * fa2[5]) +
+                  1.98e-6 * sin(2.0 * fa2[3] + fa2[5]) -
+                  1.72e-6 * sin(3.0 * fa2[5]) - 0.87e-6 * t * sin(fa2[5])
     end
     return c_terms * ASEC2RAD
 end
-
-export ee_ct
