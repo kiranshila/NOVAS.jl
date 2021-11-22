@@ -4,15 +4,17 @@ authors = ["Kiran Shila <me@kiranshila.com> and contributors"]
 version = "0.1.0"
 
 [deps]
+CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 DataDeps = "124859b0-ceae-595e-8997-d05f6a7a8dfe"
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Memoize = "c03570c3-d221-55d1-a50c-7939bbd78826"
+NOVAS_jll = "0c6c9120-0c4d-51e7-92ed-b5d3e78608aa"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-StaticArrays = "1"
 Memoize = "0.4"
+StaticArrays = "1"
 julia = "1.6"
 
 [extras]
