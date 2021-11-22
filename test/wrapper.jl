@@ -1,4 +1,5 @@
 using NOVAS_jll
+import NOVAS
 
 function fund_args(t::Real)
     a = zeros(Cdouble, 5)
@@ -188,11 +189,18 @@ function ter2cel(jd_ut_high::Real,
     xp::Real,
     yp::Real,
     vec::Vector)
-    
+
     vec2 = zeros(Cdouble,3)
     ccall((:ter2cel,libnovas),
         Cshort,
         (Cdouble,Cdouble,Cdouble,Cshort,Cshort,Cshort,Cdouble,Cdouble,Ref{Cdouble},Ref{Cdouble}),
         jd_ut_high,jd_ut_low,delta_t,method,accuracy,option,xp,yp,vec,vec2)
     return vec2
+end
+
+function refract(location::NOVAS.OnSurface,ref_option::Int,zd_obs::Real)
+    ccall((:refract,libnovas),
+     Cdouble,
+     (Ref{NOVAS.OnSurface},Cshort,Cdouble),
+     location,ref_option,zd_obs)
 end

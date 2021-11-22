@@ -15,6 +15,7 @@ export nutation_angles,
     spin,
     ter2cel,
     OnSurface,
+    refract,
     equ2hor
 
 """
@@ -626,16 +627,48 @@ calculation of refraction.
 - `temperature::Real=0`: Temperature (degrees Celsius)
 - `pressure::Real=0`: Atmospheric pressure (millibars)
 """
-struct OnSurface
-    latitude::Real
-    longitude::Real
-    height::Real
-    temperature::Real
-    pressure::Real
+struct OnSurface{T<:Real}
+    latitude::T
+    longitude::T
+    height::T
+    temperature::T
+    pressure::T
 end
-# FIXME Should this be parameterized?
 
 OnSurface(lat::T, lon::T, h::T) where {T<:Real} = OnSurface(lat, lon, h, zero(T), zero(T))
+
+"""
+    refract(location,zd_obs)
+
+Computes the atmospheric refraction in zenith distance.
+This is approximate for optical wavelengths.
+
+# Arguments
+- `location::OnSurface`: The observation location
+- `zd_obs::Real`: Observed zenith distance, in degrees
+
+# Optional Arguments
+- `ref_option::Symbol=:standard`: Either `:standard` to use standard atmospheric conditions, or `:location` to use the conditions included in `location`.
+"""
+function refract(location::OnSurface, zd_obs::Real; ref_option::Symbol = :standard)
+    @assert ref_option ∈ Set([:standard, :location])
+    # We only care about zenith distances between 0.1 and 91 degrees
+    if 0.1 <= zd_obs <= 91
+        if ref_option == :location
+            p = location.pressure
+            t = location.temperature
+        elseif ref_option == :standard
+            p = 1010.0 * exp(-location.height / 9.1e3)
+            t = 10.0
+        end
+        h = 90.0 - zd_obs
+        r = 0.016667 / tand(h + 7.31 / (h + 4.4))
+        refr = r * (0.28 * p / (t + 273.0))
+    else
+        refr = 0.0
+    end
+    return refr
+end
 
 """
     equ2hor(jd_ut1,delta_t,ra,dec)
@@ -670,7 +703,6 @@ included in `location`.
 -`rar`: Topocentric RA of object of interest in hours
 -`decr`: Topocentric declination of object of interest in degrees
 """
-# FIXME
 function equ2hor(jd_ut1::Real,
     delta_t::Real,
     ra::Real,
@@ -694,5 +726,62 @@ function equ2hor(jd_ut1::Real,
     # Define vector towards local west in Earth-fixed system
     uwe = [sinlon, -coslon, 0]
     # Obtain vectors in celestial system and rotate earth-fixed orthonormal basis to celestial system
-    uz = ter2cel(jd_ut1; accuracy = accuracy, xp = xp, yp = yp)
+    uz = ter2cel(jd_ut1, 0.0, delta_t, uze; accuracy = accuracy, xp = xp, yp = yp)
+    un = ter2cel(jd_ut1, 0.0, delta_t, une; accuracy = accuracy, xp = xp, yp = yp)
+    uw = ter2cel(jd_ut1, 0.0, delta_t, uwe; accuracy = accuracy, xp = xp, yp = yp)
+    # Define unit vector `p` towards object in celestial system w.r.t equator and equinox of date
+    p = @SVector [cosdc * cosra, cosdc * sinra, sindc]
+    # Compute coordinates of object w.r.t orthonomral basis
+    # Compuute projected components of `p` onto rotated Earth-fixed basis vectors
+    pz = p ⋅ uz
+    pn = p ⋅ un
+    pw = p ⋅ uw
+    # Compute azimuth and zenith distance
+    proj = sqrt(pn * pn + pw * pw)
+    if proj > 0
+        az = -atand(pw, pn)
+    end
+    if az < 0
+        az += 360
+    end
+    if az >= 360
+        az -= 360
+    end
+    zd = atand(proj, pz)
+    # Apply atmospheric refraction if requested
+    if ref_option != :none
+        # Get refraction in zenith distance
+        # This is iterative because refraction algorithms are always a function of observed zenith
+        zd0 = zd
+        zd1 = zd
+        while abs(zd - zd1) > 3.0e5
+            zd1 = zd
+            refr = refract(location, zd; ref_option = ref_option)
+            zd = zd0 - refr
+        end
+        # Apply refraction to celestial coordinates of object
+        if refr > 0 && zd > 3.0e-4
+            # Shift position vector of object in celestial system to account for refraction
+            sinzd, coszd = sincosd(zd)
+            sinzd0, coszd0 = sincod(zd0)
+            # Compute refracted position vector
+            pr = @. ((p - coszd0 * uz) / sinzd0) * sinzd + uz * coszd
+            # Compute refracted ra and dec
+            proj = sqrt(pr[1]^2 + pr[2]^2)
+            if proj > 0.0
+                rar = atand(pr[2], pr[1]) / 15.0
+            end
+            if rar < 0.0
+                rar += 24.0
+            end
+            if rar >= 24.0
+                rar -= 24.0
+            end
+            decr = atand(pr[3], proj)
+        end
+    else
+        rar = ra
+        decr = dec
+    end
+    return zd, az, rar, decr
 end

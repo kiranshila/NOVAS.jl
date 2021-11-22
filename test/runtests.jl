@@ -129,7 +129,19 @@ end
         @test ter2cel(jd_high, jd_low, delta_t, 0, 1, 0, xp, yp, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :CIO, accuracy = :reduced, option = :GCRS, xp = xp, yp = yp)
         @test ter2cel(jd_high, jd_low, delta_t, 1, 1, 0, xp, yp, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :reduced, option = :GCRS, xp = xp, yp = yp)
         @test ter2cel(jd_high, jd_low, delta_t, 1, 1, 1, xp, yp, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :reduced, option = :equinox, xp = xp, yp = yp)
-
+        # Now with zero xp and yp
         @test ter2cel(jd_high, jd_low, delta_t, 1, 1, 0, 0.0, 0.0, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :reduced, option = :GCRS)
+    end
+    # Generate a random location
+    lat = rand(Cdouble)*180 - 90
+    lon = rand(Cdouble)*180 - 90
+    alt = rand(Cdouble)*8000
+    temp = rand(Cdouble)*50
+    pressure = rand(Cdouble)*1000
+    location = NOVAS.OnSurface(lat,lon,alt,temp,pressure)
+    zd = rand()*90
+    @testset "refract" begin
+        @test refract(location,1,zd) ≈ NOVAS.refract(location,zd;ref_option=:standard)
+        @test refract(location,2,zd) ≈ NOVAS.refract(location,zd;ref_option=:location)
     end
 end
