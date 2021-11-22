@@ -4,6 +4,7 @@ Here is a comparison of the runtime speed of every function implemented.
 This is run of GitHub CI with system specs of:
 
 ```@example
+using InteractiveUtils
 versioninfo()
 ```
 
@@ -13,7 +14,7 @@ versioninfo()
 using BenchmarkTools, DataFrames
 import NOVAS
 # Include un-exported c wrappers
-include("../test/wrapper.jl")
+include("../../test/wrapper.jl")
 
 results = DataFrame(fname=[],c_time=[],julia_time=[])
 

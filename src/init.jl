@@ -28,9 +28,16 @@ function __init__()
         precession in longitude expressions from Simon et al. (1994) throughout. The NU2000K Nutation Model is fully documented in the 
         United States Naval Observatory's NOVAS-C 3.0 software package.
         """,
-        "https://github.com/kiranshila/nu2000k/archive/refs/heads/main.zip",
+        "https://github.com/kiranshila/nu2000k/archive/main.zip",
         "48b070d61c464da2abcea6a2221831e8ddd78b8d611bb4d9bcc712a50be9eeff";
-        post_fetch_method = unpack))
+        post_fetch_method = function(fn)
+            unpack(fn)
+            dir = "nu2000k-main"
+            innerfiles=  readdir(dir)
+            mv.(joinpath.(dir,innerfiles),innerfiles)
+            rm(dir,recursive=true)
+            rm("main.zip")
+        end))
     # Eagerly grab data deps
     datadep"2003IERSConventions"
     datadep"nu2000k"
