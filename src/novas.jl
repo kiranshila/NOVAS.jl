@@ -571,34 +571,45 @@ the dynamical-to-GCRS frame tie.
 - `xp::Real=0`: x coordinate of the celestial intermediate pole in arcseconds
 - `yp::Real=0`: y coordinate of the celestial intermediate pole in arcseconds
 """
-# FIXME
 function ter2cel(jd_ut_high::Real, jd_ut_low::Real, delta_t::Real, vec::AbstractVector;
     method::Symbol = :CIO, accuracy::Symbol = :full, option::Symbol = :GCRS, xp::Real = 0, yp::Real = 0)
+    @assert method ∈ Set([:CIO, :equinox])
+    @assert option ∈ Set([:GCRS, :equinox])
     # Compute the TT Julian date
     jd_ut1 = jd_ut_high + jd_ut_low
     jd_tt = jd_ut1 + (delta_t / 86400.0)
     # Compute the TDB Julian date corresponding to the input UT1 Julian date
-    _, secdiff = tdb2tt(jd_tt)
+    jd_tdb = jd_tt
+    _, secdiff = tdb2tt(jd_tdb)
     jd_tdb = jd_tt + secdiff / 86400.0
+    # Apply polar motion
+    if iszero(xp) && iszero(yp)
+        v1 = vec
+    else
+        v1 = wobble(jd_tdb, xp, yp, vec; direction = :itrs2terr)
+    end
     if method == :CIO
-        # Apply polar motion (if it exists), transforming the vector to the terrestrial intermediate system
-        if iszero(xp) && iszero(yp)
-            v1 = copy(vec)
-        else
-            v1 = wobble(jd_tdb, xp, yp, vec1; direction = :itrs2terr)
-        end
         # Obtain basis vectors, in the GCRS of the celestial intermediate system
         r_cio = cio_location(jd_tdb; accuracy = accuracy)
         x, y, z = cio_basis(jd_tdb, r_cio; accuracy = accuracy)
-        # Compute and apply earth rotation angle, `theta` transforming thevector to the celestial intermediate system
+        # Compute and apply earth rotation angle, `theta` transforming the vector to the celestial intermediate system
         θ = era(jd_ut_high, jd_ut_low)
         v2 = spin(-θ, v1)
         # Transform the vector from the celestial intermediate system to the GCRS
-        #vec2 = 
+        vec2 = hcat(x, y, z) * v2
     elseif method == :equinox
-
+        gast = sidereal_time(jd_ut_high, jd_ut_low, delta_t; gst_type = :apparent, method = :equinox, accuracy = accuracy)
+        v2 = spin(-gast * 15, v1)
+        if option == :equinox
+            vec2 = v2
+        elseif option == :GCRS
+            # Apply precession, nutation, frame tie
+            v3 = nutation(jd_tdb, v2; accuracy = accuracy, direction = :true2mean)
+            v4 = precession(jd_tdb, v3, T0)
+            vec2 = frame_tie(v4, :dynamic2icrs)
+        end
     end
-
+    return vec2
 end
 
 """

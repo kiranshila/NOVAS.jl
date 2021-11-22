@@ -178,3 +178,21 @@ function spin(angle::Real,pos::Vector)
         angle,pos,pos2)
     return pos2
 end
+
+function ter2cel(jd_ut_high::Real,
+    jd_ut_low::Real,
+    delta_t::Real,
+    method::Int,
+    accuracy::Int,
+    option::Int,
+    xp::Real,
+    yp::Real,
+    vec::Vector)
+    
+    vec2 = zeros(Cdouble,3)
+    ccall((:ter2cel,libnovas),
+        Cshort,
+        (Cdouble,Cdouble,Cdouble,Cshort,Cshort,Cshort,Cdouble,Cdouble,Ref{Cdouble},Ref{Cdouble}),
+        jd_ut_high,jd_ut_low,delta_t,method,accuracy,option,xp,yp,vec,vec2)
+    return vec2
+end
