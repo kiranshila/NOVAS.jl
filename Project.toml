@@ -11,6 +11,7 @@ Memoize = "c03570c3-d221-55d1-a50c-7939bbd78826"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+StaticArrays = "1"
 Memoize = "0.4"
 julia = "1.6"
 
