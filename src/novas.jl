@@ -768,7 +768,7 @@ function equ2hor(jd_ut1::Real,
         if (refr > 0) && (zd > 3.0e-4)
             # Shift position vector of object in celestial system to account for refraction
             sinzd, coszd = sincosd(zd)
-            sinzd0, coszd0 = sincod(zd0)
+            sinzd0, coszd0 = sincosd(zd0)
             # Compute refracted position vector
             pr = @. ((p - coszd0 * uz) / sinzd0) * sinzd + uz * coszd
             # Compute refracted ra and dec
