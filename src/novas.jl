@@ -714,9 +714,9 @@ function equ2hor(jd_ut1::Real,
     ref_option::Symbol = :none)
     @assert ref_option ∈ Set([:none, :standard, :location])
     # Initialize things
-    zd = 0.0
-    az = 0.0
     refr = 0.0
+    rar = ra
+    decr = dec
     # Trig it up
     sinlat, coslat = sincosd(location.latitude)
     sinlon, coslon = sincosd(location.longitude)
@@ -736,9 +736,9 @@ function equ2hor(jd_ut1::Real,
     p = [cosdc * cosra, cosdc * sinra, sindc]
     # Compute coordinates of object w.r.t orthonomral basis
     # Compuute projected components of `p` onto rotated Earth-fixed basis vectors
-    pz = p ⋅ uz
-    pn = p ⋅ un
-    pw = p ⋅ uw
+    pz = p[1] * uz[1] + p[2] * uz[2] + p[3] * uz[3]
+    pn = p[1] * un[1] + p[2] * un[2] + p[3] * un[3]
+    pw = p[1] * uw[1] + p[2] * uw[2] + p[3] * uw[3]
     # Compute azimuth and zenith distance
     proj = sqrt(pn^2 + pw^2)
     if proj > 0
@@ -752,8 +752,6 @@ function equ2hor(jd_ut1::Real,
     end
     zd = atand(proj, pz)
     # Apply atmospheric refraction if requested
-    rar = ra
-    decr = dec
     if ref_option != :none
         # Get refraction in zenith distance
         # This is iterative because refraction algorithms are always a function of observed zenith
