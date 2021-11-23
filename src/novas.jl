@@ -760,7 +760,7 @@ function equ2hor(jd_ut1::Real,
             zd1 = zd
             refr = refract(location, zd; ref_option = ref_option)
             zd = zd0 - refr
-            abs(zd - zd1) > 3.0e5 ||  break
+            abs(zd - zd1) > 3.0e-5 ||  break
         end
         # Apply refraction to celestial coordinates of object
         if (refr > 0) && (zd > 3.0e-4)
