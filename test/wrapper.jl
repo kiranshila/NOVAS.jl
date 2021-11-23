@@ -1,7 +1,7 @@
 using NOVAS
 import NOVAS.LibNOVAS
 
-function c_fund_args(t)
+function fund_args(t)
     a = zeros(Cdouble, 5)
     LibNOVAS.fund_args(t, a)
     return a
