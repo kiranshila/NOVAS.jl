@@ -133,33 +133,9 @@ Precesses equatorial rectangular coordinates from one epoch to another. One of t
         t *= -1
     end
 
-    psia = ((((-0.0000000951 * t
-               +
-               0.000132851) * t
-              -
-              0.00114045) * t
-             -
-             1.0790069) * t
-            +
-            5038.481507) * t
-    omegaa = ((((+0.0000003337 * t
-                 -
-                 0.000000467) * t
-                -
-                0.00772503) * t
-               +
-               0.0512623) * t
-              -
-              0.025754) * t + eps0
-    chia = ((((-0.0000000560 * t
-               +
-               0.000170663) * t
-              -
-              0.00121197) * t
-             -
-             2.3814292) * t
-            +
-            10.556403) * t
+    psia = ((((-0.0000000951 * t + 0.000132851) * t - 0.00114045) * t - 1.0790069) * t + 5038.481507) * t
+    omegaa = ((((+0.0000003337 * t - 0.000000467) * t - 0.00772503) * t + 0.0512623) * t - 0.025754) * t + eps0
+    chia = ((((-0.0000000560 * t + 0.000170663) * t - 0.00121197) * t - 2.3814292) * t + 10.556403) * t
 
     eps0 = eps0 * ASEC2RAD
     psia = psia * ASEC2RAD
@@ -627,7 +603,7 @@ calculation of refraction.
 - `temperature::Real=0`: Temperature (degrees Celsius)
 - `pressure::Real=0`: Atmospheric pressure (millibars)
 """
-struct OnSurface{T <: Real}
+struct OnSurface{T<:Real}
     latitude::T
     longitude::T
     height::T
@@ -760,7 +736,7 @@ function equ2hor(jd_ut1::Real,
             zd1 = zd
             refr = refract(location, zd; ref_option = ref_option)
             zd = zd0 - refr
-            abs(zd - zd1) > 3.0e-5 ||  break
+            abs(zd - zd1) > 3.0e-5 || break
         end
         # Apply refraction to celestial coordinates of object
         if (refr > 0) && (zd > 3.0e-4)
