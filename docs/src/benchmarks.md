@@ -43,6 +43,20 @@ push!(results,("nu2000k",c_nu2000k,julia_nu2000k))
 c_iau2000a     =  mean(@benchmark iau2000a($rand(),$rand())).time
 julia_iau2000a =  mean(@benchmark NOVAS.iau2000a($rand(),$rand())).time 
 push!(results,("iau2000a",c_iau2000a,julia_iau2000a))
+
+# NOVAS
+c_nutation_angles     = mean(@benchmark nutation_angles($rand(),0)).time
+julia_nutation_angles = mean(@benchmark NOVAS.nutation_angles($rand(),accuracy = :full)).time
+push!(results,("nutation_angles",c_nutation_angles,julia_nutation_angles))
+
+c_mean_obliq     = mean(@benchmark mean_obliq($rand())).time
+julia_mean_obliq = mean(@benchmark NOVAS.mean_obliq($rand())).time
+push!(results,("mean_obliq",c_mean_obliq,julia_mean_obliq))
+
+c_frame_tie     = mean(@benchmark frame_tie($rand(3),0)).time
+julia_frame_tie = mean(@benchmark NOVAS.frame_tie($rand(3),:icrs2dynamic)).time
+push!(results,("frame_tie",c_frame_tie,julia_frame_tie))
+
 ```
 
 ```@example bench

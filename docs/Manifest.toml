@@ -38,6 +38,11 @@ git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
 version = "0.5.10"
 
+[[CEnum]]
+git-tree-sha1 = "215a9aa4a1f23fbd05b92769fdd62559488d70e9"
+uuid = "fa961155-64e5-5f13-b03f-caf6b980ea82"
+version = "0.4.1"
+
 [[Calculus]]
 deps = ["LinearAlgebra"]
 git-tree-sha1 = "f641eb0a4f00c343bbc32346e1217b86f3ce9dad"
@@ -276,16 +281,16 @@ uuid = "46d2c3a1-f734-5fdb-9937-b9b9aeba4221"
 version = "0.2.2"
 
 [[NOVAS]]
-deps = ["DataDeps", "DelimitedFiles", "LinearAlgebra", "Memoize", "StaticArrays"]
+deps = ["CEnum", "DataDeps", "DelimitedFiles", "LinearAlgebra", "Memoize", "NOVAS_jll", "StaticArrays"]
 path = ".."
 uuid = "e618f0cf-9996-4d7a-81fa-69b2aebd0c83"
 version = "0.1.0"
 
 [[NOVAS_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "f578a43a5f5d3df2711480b6970f8667c8e9b7ac"
+git-tree-sha1 = "31ce4e2f29cedb8d400bf1d4b523fa2571c82879"
 uuid = "0c6c9120-0c4d-51e7-92ed-b5d3e78608aa"
-version = "3.1.0+0"
+version = "3.1.0+1"
 
 [[NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -345,9 +350,9 @@ deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[RecipesBase]]
-git-tree-sha1 = "44a75aa7a527910ee3d1751d1f0e4148698add9e"
+git-tree-sha1 = "a4425fe1cde746e278fa895cc69e3113cb2614f6"
 uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
-version = "1.1.2"
+version = "1.2.0"
 
 [[Reexport]]
 git-tree-sha1 = "45e428421666073eab6f2da5c9d310d99bb12f9b"
