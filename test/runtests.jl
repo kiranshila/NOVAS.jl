@@ -146,8 +146,8 @@ end
         @test refract(clocation, 2, zd) ≈ NOVAS.refract(location, zd; ref_option = :location)
     end
     # Random coordinate
-    ra = rand()*24
-    dec = rand()*180 - 90
+    ra = rand() * 24
+    dec = rand() * 180 - 90
     @testset "equ2hor" begin
         @test equ2hor(jd_high, delta_t, 0, xp, yp, clocation, ra, dec, 0) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :none)
         @test equ2hor(jd_high, delta_t, 0, xp, yp, clocation, ra, dec, 1) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :standard)
