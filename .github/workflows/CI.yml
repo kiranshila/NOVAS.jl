@@ -60,3 +60,4 @@ jobs:
             using NOVAS
             DocMeta.setdocmeta!(NOVAS, :DocTestSetup, :(using NOVAS); recursive=true)
             doctest(NOVAS)'
+        if: ${{ matrix.version == '1.6' }}
