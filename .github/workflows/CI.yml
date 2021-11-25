@@ -50,7 +50,7 @@ jobs:
           files: lcov.info
       # Docs on current build, not latest
       - uses: julia-actions/julia-docdeploy@v1
-        if: if: ${{ matrix.version == '1.6' }}
+        if: ${{ matrix.version == '1.6' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
