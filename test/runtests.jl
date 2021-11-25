@@ -57,7 +57,7 @@ end
         @test @testbench ira_equinox(jd_tdb; accuracy = :reduced, equinox = :true) (jd_tdb::Range{Float64,-1e7,1e7})
     end
     @testset "cio_location" begin
-        @test @testbench cio_location(jd_tdb; accuracy = :full)
+        @test @testbench cio_location(jd_tdb; accuracy = :full) (jd_tdb::Range{Float64,-1e7,1e7})
     end
     @testset "cio_basis" begin
         @test @testbench cio_basis(jd_tdb, ra_cio; accuracy = :full) (jd_tdb::Range{Float64,-1e7,1e7}) (ra_cio::Range{Float64,0,24})

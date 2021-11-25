@@ -128,11 +128,16 @@ function cio_location(jd_tdb; accuracy)
     return ra_cio[]
 end
 
-function cio_basis(jd_tdb, ra_cio, ref_sys, accuracy)
+function cio_basis(jd_tdb, ra_cio; accuracy)
+    if accuracy == :full
+        acc = 0
+    elseif accuracy == :reduced
+        acc = 1
+    end
     x = zeros(Cdouble, 3)
     y = zeros(Cdouble, 3)
     z = zeros(Cdouble, 3)
-    LibNOVAS.cio_basis(jd_tdb, ra_cio, ref_sys, accuracy, x, y, z)
+    LibNOVAS.cio_basis(jd_tdb, ra_cio, ref_sys, acc, x, y, z)
     return x, y, z
 end
 

@@ -1,4 +1,5 @@
 [deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 NOVAS_jll = "0c6c9120-0c4d-51e7-92ed-b5d3e78608aa"
 RandomizedPropertyTest = "6d7a0864-9fbc-11e9-1427-7bb65d6eba8e"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
