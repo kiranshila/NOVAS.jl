@@ -137,7 +137,7 @@ function cio_basis(jd_tdb, ra_cio; accuracy)
     x = zeros(Cdouble, 3)
     y = zeros(Cdouble, 3)
     z = zeros(Cdouble, 3)
-    LibNOVAS.cio_basis(jd_tdb, ra_cio, ref_sys, acc, x, y, z)
+    LibNOVAS.cio_basis(jd_tdb, ra_cio, 2, acc, x, y, z)
     return x, y, z
 end
 
