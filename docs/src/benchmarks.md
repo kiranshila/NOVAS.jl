@@ -10,14 +10,11 @@ versioninfo()
 
 ## Results
 
-Unless otherwise noted, benchmark times are with "full" accuracy.
-This usually corresponds to using the iau2000a nutation model.
-
 ```@setup bench
-include("../../test/benchmark.jl")
+using CSV, DataFrames
 ```
 
 
 ```@example bench
-results
+CSV.File("../../benchmarks.csv") |> DataFrame
 ```

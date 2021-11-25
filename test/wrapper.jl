@@ -176,9 +176,14 @@ function sidereal_time(jd_high, jd_low, delta_t; gst_type, method, accuracy)
     return gst[]
 end
 
-function wobble(tjd, direction, xp, yp, pos)
+function wobble(tjd, xp, yp, pos; direction)
+    if direction == :itrs2terr
+        dir = 0
+    elseif direction == :terr2itrs
+        dir = 1
+    end
     pos2 = zeros(Cdouble, 3)
-    LibNOVAS.wobble(tjd, direction, xp, yp, pos, pos2)
+    LibNOVAS.wobble(tjd, dir, xp, yp, pos, pos2)
     return pos2
 end
 

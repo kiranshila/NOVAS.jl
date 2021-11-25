@@ -1,8 +1,7 @@
 [deps]
 AstroTime = "c61b5328-d09d-5e37-a9a8-0eb41c39009c"
-BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
 NOVAS = "e618f0cf-9996-4d7a-81fa-69b2aebd0c83"
-NOVAS_jll = "0c6c9120-0c4d-51e7-92ed-b5d3e78608aa"

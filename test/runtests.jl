@@ -1,4 +1,4 @@
-using Test
+using Test, CSV
 
 include("utils.jl")
 
@@ -79,16 +79,11 @@ end
         @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :equinox, accuracy = :full) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
         @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :equinox, accuracy = :reduced) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
     end
-    #=
-    # Generate CIP poles
-    xp = rand()
-    yp = rand()
-    # Generate random position vector
-    pos = rand(3)
     @testset "wobble" begin
-        @test wobble(jd_high, 0, xp, yp, pos) ≈ NOVAS.wobble(jd_high, xp, yp, pos; direction = :itrs2terr)
-        @test wobble(jd_high, 1, xp, yp, pos) ≈ NOVAS.wobble(jd_high, xp, yp, pos; direction = :terr2itrs)
+        @test @testbench wobble(tjd,xp, yp, pos; direction = :itrs2terr) (tjd::Range{Float64,-1e7,1e7}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
+        @test @testbench wobble(tjd,xp, yp, pos; direction = :terr2itrs) (tjd::Range{Float64,-1e7,1e7}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
     end
+    #=
     # Random angle
     angle = rand()
     @testset "spin" begin
@@ -131,8 +126,9 @@ end
         @test equ2hor(jd_high, delta_t, 0, 0.0, 0.0, clocation, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, ref_option = :location)
         @test equ2hor(jd_high, delta_t, 1, 0.0, 0.0, clocation, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, ref_option = :location)
     end
-    =#
+     =#
 end
 
-# Show results
-println(results)
+
+# Serialize Results
+CSV.write("benchmarks.csv", results)
