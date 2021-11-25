@@ -1,113 +1,85 @@
-using NOVAS
 using Test
 
-# Add custom isapprox to test tuples
-import Base.isapprox
-Base.isapprox(x::Tuple, y::Tuple; kws...) = isapprox(collect(x), collect(y); kws...)
-
-# Include un-exported c wrappers
-include("wrapper.jl")
+include("utils.jl")
 
 @testset verbose = true "utilities" begin
-    # Generate a julian date
-    jd_high = rand() * 1e6 |> round
-    jd_low = rand()
-    # Figure the TDB Julian centuries
-    t = rand()
-    # Generate random big angle
-    θ = rand() * 100
     @testset "fund_args" begin
-        @test fund_args(t) ≈ NOVAS.fund_args(t)
+        @test @testbench fund_args(t) (t::Range{Float64,0,1e7})
     end
     @testset "norm_ang" begin
-        @test norm_ang(θ) ≈ NOVAS.norm_ang(θ)
-        @test norm_ang(-θ) ≈ NOVAS.norm_ang(-θ)
+        @test @testbench norm_ang(θ) (θ::Range{Float64,-1e5,1e5})
     end
     @testset "ee_ct" begin
-        @test ee_ct(jd_high, jd_low, 0) ≈ NOVAS.ee_ct(jd_high, jd_low)
-        @test ee_ct(jd_high, jd_low, 1) ≈ NOVAS.ee_ct(jd_high, jd_low; accuracy = :reduced)
+        @test @testbench ee_ct(jd_high, jd_low; accuracy = :full) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1})
+        @test @testbench ee_ct(jd_high, jd_low; accuracy = :reduced) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1})
     end
 end
 
 @testset verbose = true "nutation" begin
     # Generate a julian date
-    jd_high = rand() * 1e6 |> round
-    jd_low = rand()
     @testset "nu2000k" begin
-        @test nu2000k(jd_high, jd_low) ≈ NOVAS.nu2000k(jd_high, jd_low)
+        @test @testbench nu2000k(jd_high, jd_low) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1})
     end
     @testset "iau2000a" begin
-        @test iau2000a(jd_high, jd_low) ≈ NOVAS.iau2000a(jd_high, jd_low)
+        @test @testbench iau2000a(jd_high, jd_low) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1})
     end
 end
 
 @testset verbose = true "novas" begin
-    # Generate a julian date
-    jd_high = rand() * 1e6 |> round
-    jd_low = rand()
-    # Figure the TDB Julian centuries
-    t = ((jd_high - NOVAS.T0) + jd_low) / 36525.0
     @testset "nutation_angles" begin
-        @test nutation_angles(t, 0) ≈ NOVAS.nutation_angles(t)
-        @test nutation_angles(t, 1) ≈ NOVAS.nutation_angles(t; accuracy = :reduced)
+        @test @testbench nutation_angles(t; accuracy = :full) (t::Range{Float64,-1e3,4e3})
+        @test @testbench nutation_angles(t; accuracy = :reduced) (t::Range{Float64,-1e3,4e3})
     end
     @testset "mean_obliq" begin
-        @test mean_obliq(jd_high) ≈ NOVAS.mean_obliq(jd_high)
+        @test @testbench mean_obliq(jd_tdb) (jd_tdb::Range{Float64,0,1e7})
     end
-    # Generate random position vector
-    pos = rand(3)
     @testset "frame_tie" begin
-        @test frame_tie(pos, -1) ≈ NOVAS.frame_tie(pos, :dynamic2icrs)
-        @test frame_tie(pos, 0) ≈ NOVAS.frame_tie(pos, :icrs2dynamic)
+        @test @testbench frame_tie(pos, :dynamic2icrs) (pos::Position)
+        @test @testbench frame_tie(pos, :icrs2dynamic) (pos::Position)
     end
     @testset "nutation" begin
-        @test nutation(jd_high, 0, 0, pos) ≈ NOVAS.nutation(jd_high, pos; accuracy = :full, direction = :mean2true)
-        @test nutation(jd_high, 0, 1, pos) ≈ NOVAS.nutation(jd_high, pos; accuracy = :reduced, direction = :mean2true)
-        @test nutation(jd_high, 1, 0, pos) ≈ NOVAS.nutation(jd_high, pos; accuracy = :full, direction = :true2mean)
-        @test nutation(jd_high, 1, 1, pos) ≈ NOVAS.nutation(jd_high, pos; accuracy = :reduced, direction = :true2mean)
+        @test @testbench nutation(jd_tdb, pos; accuracy = :full, direction = :mean2true) (jd_tdb::Range{Float64,-1e7,1e7}) (pos::Position)
+        @test @testbench nutation(jd_tdb, pos; accuracy = :reduced, direction = :mean2true) (jd_tdb::Range{Float64,-1e7,1e7}) (pos::Position)
+        @test @testbench nutation(jd_tdb, pos; accuracy = :full, direction = :true2mean) (jd_tdb::Range{Float64,-1e7,1e7}) (pos::Position)
+        @test @testbench nutation(jd_tdb, pos; accuracy = :reduced, direction = :true2mean) (jd_tdb::Range{Float64,-1e7,1e7}) (pos::Position)
     end
     @testset "precession" begin
-        @test precession(jd_high, pos, NOVAS.T0) ≈ NOVAS.precession(jd_high, pos, NOVAS.T0)
-        @test precession(NOVAS.T0, pos, jd_high) ≈ NOVAS.precession(NOVAS.T0, pos, jd_high)
+        @test @testbench precession(jd_tdb, pos, NOVAS.T0) (jd_tdb::Range{Float64,-1e7,1e7}) (pos::Position)
     end
     @testset "e_tilt" begin
-        @test e_tilt(jd_high, 0) ≈ NOVAS.e_tilt(jd_high)
-        @test e_tilt(jd_high, 1) ≈ NOVAS.e_tilt(jd_high; accuracy = :reduced)
+        @test @testbench e_tilt(jd_tdb; accuracy = :full) (jd_tdb::Range{Float64,-1e7,1e7})
+        @test @testbench e_tilt(jd_tdb; accuracy = :reduced) (jd_tdb::Range{Float64,-1e7,1e7})
     end
     @testset "ira_equinox" begin
-        @test ira_equinox(jd_high, 0, 0) ≈ NOVAS.ira_equinox(jd_high; accuracy = :full, equinox = :mean)
-        @test ira_equinox(jd_high, 0, 1) ≈ NOVAS.ira_equinox(jd_high; accuracy = :reduced, equinox = :mean)
-        @test ira_equinox(jd_high, 1, 0) ≈ NOVAS.ira_equinox(jd_high; accuracy = :full, equinox = :true)
-        @test ira_equinox(jd_high, 1, 1) ≈ NOVAS.ira_equinox(jd_high; accuracy = :reduced, equinox = :true)
+        @test @testbench ira_equinox(jd_tdb; accuracy = :full, equinox = :mean) (jd_tdb::Range{Float64,-1e7,1e7})
+        @test @testbench ira_equinox(jd_tdb; accuracy = :full, equinox = :true) (jd_tdb::Range{Float64,-1e7,1e7})
+        @test @testbench ira_equinox(jd_tdb; accuracy = :reduced, equinox = :mean) (jd_tdb::Range{Float64,-1e7,1e7})
+        @test @testbench ira_equinox(jd_tdb; accuracy = :reduced, equinox = :true) (jd_tdb::Range{Float64,-1e7,1e7})
     end
     @testset "cio_location" begin
-        @test cio_location(jd_high, 0) ≈ NOVAS.cio_location(jd_high; accuracy = :full)
-        @test cio_location(jd_high, 1) ≈ NOVAS.cio_location(jd_high; accuracy = :reduced)
+        @test @testbench cio_location(jd_tdb; accuracy = :full)
     end
-    # Random RA in hours
-    ra_cio = rand() * 24
     @testset "cio_basis" begin
-        @test cio_basis(jd_high, ra_cio, 2, 0) ≈ NOVAS.cio_basis(jd_high, ra_cio; accuracy = :full)
-        @test cio_basis(jd_high, ra_cio, 2, 1) ≈ NOVAS.cio_basis(jd_high, ra_cio; accuracy = :reduced)
+        @test @testbench cio_basis(jd_tdb, ra_cio; accuracy = :full) (jd_tdb::Range{Float64,-1e7,1e7}) (ra_cio::Range{Float64,0,24})
+        @test @testbench cio_basis(jd_tdb, ra_cio; accuracy = :reduced) (jd_tdb::Range{Float64,-1e7,1e7}) (ra_cio::Range{Float64,0,24})
     end
     @testset "era" begin
-        @test era(jd_high, jd_low) ≈ NOVAS.era(jd_high, jd_low)
+        @test @testbench era(jd_high, jd_low) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1})
     end
     @testset "tdb2tt" begin
-        @test tdb2tt(jd_high) ≈ NOVAS.tdb2tt(jd_high)
+        @test @testbench tdb2tt(jdb_jd) (jdb_jd::Range{Float64,-1e7,1e7})
     end
-    # Random delta_t
-    delta_t = rand()
     @testset "sidereal_time" begin
-        @test sidereal_time(jd_high, jd_low, delta_t, 0, 0, 0) ≈ NOVAS.sidereal_time(jd_high, jd_low, delta_t; gst_type = :mean, method = :CIO, accuracy = :full)
-        @test sidereal_time(jd_high, jd_low, delta_t, 0, 0, 1) ≈ NOVAS.sidereal_time(jd_high, jd_low, delta_t; gst_type = :mean, method = :CIO, accuracy = :reduced)
-        @test sidereal_time(jd_high, jd_low, delta_t, 0, 1, 0) ≈ NOVAS.sidereal_time(jd_high, jd_low, delta_t; gst_type = :mean, method = :equinox, accuracy = :full)
-        @test sidereal_time(jd_high, jd_low, delta_t, 0, 1, 1) ≈ NOVAS.sidereal_time(jd_high, jd_low, delta_t; gst_type = :mean, method = :equinox, accuracy = :reduced)
-        @test sidereal_time(jd_high, jd_low, delta_t, 1, 0, 0) ≈ NOVAS.sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :CIO, accuracy = :full)
-        @test sidereal_time(jd_high, jd_low, delta_t, 1, 0, 1) ≈ NOVAS.sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :CIO, accuracy = :reduced)
-        @test sidereal_time(jd_high, jd_low, delta_t, 1, 1, 0) ≈ NOVAS.sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :equinox, accuracy = :full)
-        @test sidereal_time(jd_high, jd_low, delta_t, 1, 1, 1) ≈ NOVAS.sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :equinox, accuracy = :reduced)
+        @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :mean, method = :CIO, accuracy = :full) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
+        @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :mean, method = :CIO, accuracy = :reduced) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
+        @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :mean, method = :equinox, accuracy = :full) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
+        @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :mean, method = :equinox, accuracy = :reduced) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
+        @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :CIO, accuracy = :full) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
+        @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :CIO, accuracy = :reduced) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
+        @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :equinox, accuracy = :full) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
+        @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :equinox, accuracy = :reduced) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
     end
+    #=
     # Generate CIP poles
     xp = rand()
     yp = rand()
@@ -159,4 +131,8 @@ end
         @test equ2hor(jd_high, delta_t, 0, 0.0, 0.0, clocation, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, ref_option = :location)
         @test equ2hor(jd_high, delta_t, 1, 0.0, 0.0, clocation, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, ref_option = :location)
     end
+    =#
 end
+
+# Show results
+println(results)

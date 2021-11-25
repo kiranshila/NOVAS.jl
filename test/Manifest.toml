@@ -62,9 +62,9 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[NOVAS_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "f578a43a5f5d3df2711480b6970f8667c8e9b7ac"
+git-tree-sha1 = "31ce4e2f29cedb8d400bf1d4b523fa2571c82879"
 uuid = "0c6c9120-0c4d-51e7-92ed-b5d3e78608aa"
-version = "3.1.0+0"
+version = "3.1.0+1"
 
 [[NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -90,6 +90,12 @@ uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 [[Random]]
 deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+[[RandomizedPropertyTest]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f2fcd4fa42d0af4da18e4f26df2fddbb7e28da23"
+uuid = "6d7a0864-9fbc-11e9-1427-7bb65d6eba8e"
+version = "0.1.0"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
