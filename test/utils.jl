@@ -22,7 +22,7 @@ end
 macro testbench(args...)
     names = Symbol[]
     types = []
-    nexpr = 10^4
+    nexpr = 10^3
     expr = args[1]
     vartypes = args[2:length(args)]
     for e in vartypes
@@ -52,7 +52,7 @@ macro testbench(args...)
     j_fexpr = esc(Expr(:(->), nametuple, NOVAS_expr))
     return quote
         test_result = RandomizedPropertyTest.do_quickcheck($test_fexpr, $exprstr, $namestrs, $typetuple, $nexpr)
-        if test_result
+        if test_result && !haskey(ENV,"JULIA_DONT_BENCH")
             ctime = quickbench($c_fexpr, $typetuple)
             jtime = quickbench($j_fexpr, $typetuple)
             speedup = ctime / jtime
