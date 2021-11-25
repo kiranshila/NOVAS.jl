@@ -1,8 +1,5 @@
 using Test, CSV
 
-#FIXME
-ENV["JULIA_DONT_BENCH"] = true
-
 include("utils.jl")
 
 @testset "fund_args" begin
