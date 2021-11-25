@@ -48,7 +48,7 @@ jobs:
             ${{ runner.os }}-
 
       - uses: julia-actions/julia-runtest@v1
-        if: ${{ matrix.version == 'latest' }}
+        if: ${{ matrix.version == 'nightly' }}
         env:
           JULIA_DONT_BENCH: true
 
