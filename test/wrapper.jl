@@ -160,9 +160,9 @@ function sidereal_time(jd_high, jd_low, delta_t; gst_type, method, accuracy)
     end
 
     if gst_type == :mean
-        gst = 0
+        gstt = 0
     elseif gst_type ==:apparent
-        gst = 1
+        gstt = 1
     end
 
     if method == :CIO
@@ -172,7 +172,7 @@ function sidereal_time(jd_high, jd_low, delta_t; gst_type, method, accuracy)
     end
 
     gst = Ref{Cdouble}(0.0)
-    LibNOVAS.sidereal_time(jd_high, jd_low, delta_t, gst, meth, acc, gst)
+    LibNOVAS.sidereal_time(jd_high, jd_low, delta_t, gstt, meth, acc, gst)
     return gst[]
 end
 
