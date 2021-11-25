@@ -16,6 +16,5 @@ using CSV, DataFrames
 
 
 ```@example bench
-println(pwd())
 CSV.File("../../benchmarks.csv") |> DataFrame
 ```

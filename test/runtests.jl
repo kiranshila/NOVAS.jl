@@ -106,5 +106,4 @@ end
 end
 
 # Serialize Results
-CSV.write("benchmarks.csv", results)
-println(pwd())
+CSV.write("../benchmarks.csv", results)
