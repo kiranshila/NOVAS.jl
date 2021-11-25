@@ -65,3 +65,14 @@ end
 # Custom types for common arguments
 struct Position end
 RandomizedPropertyTest.generate(rng::AbstractRNG, _::Type{Position}) = rand(Float64, 3)
+
+struct Location end
+
+function RandomizedPropertyTest.generate(rng::AbstractRNG, _::Type{Location})
+    lat = rand(Cdouble) * 180 - 90
+    lon = rand(Cdouble) * 180 - 90
+    alt = rand(Cdouble) * 8000
+    temp = rand(Cdouble) * 50
+    pressure = rand(Cdouble) * 1000
+    NOVAS.OnSurface(lat, lon, alt, temp, pressure)
+end

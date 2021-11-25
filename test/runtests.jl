@@ -80,53 +80,33 @@ end
         @test @testbench sidereal_time(jd_high, jd_low, delta_t; gst_type = :apparent, method = :equinox, accuracy = :reduced) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70})
     end
     @testset "wobble" begin
-        @test @testbench wobble(tjd,xp, yp, pos; direction = :itrs2terr) (tjd::Range{Float64,-1e7,1e7}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
-        @test @testbench wobble(tjd,xp, yp, pos; direction = :terr2itrs) (tjd::Range{Float64,-1e7,1e7}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
+        @test @testbench wobble(tjd, xp, yp, pos; direction = :itrs2terr) (tjd::Range{Float64,-1e7,1e7}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1}) (pos::Position)
+        @test @testbench wobble(tjd, xp, yp, pos; direction = :terr2itrs) (tjd::Range{Float64,-1e7,1e7}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1}) (pos::Position)
     end
-    #=
-    # Random angle
-    angle = rand()
     @testset "spin" begin
-        @test spin(angle, pos) ≈ NOVAS.spin(angle, pos)
+        @test @testbench spin(θ, pos) (θ::Range{Float64,0,360}) (pos::Position)
     end
     @testset "ter2cel" begin
-        @test ter2cel(jd_high, jd_low, delta_t, 0, 0, 0, xp, yp, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :CIO, accuracy = :full, option = :GCRS, xp = xp, yp = yp)
-        @test ter2cel(jd_high, jd_low, delta_t, 1, 0, 0, xp, yp, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :full, option = :GCRS, xp = xp, yp = yp)
-        @test ter2cel(jd_high, jd_low, delta_t, 1, 0, 1, xp, yp, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :full, option = :equinox, xp = xp, yp = yp)
-        @test ter2cel(jd_high, jd_low, delta_t, 0, 1, 0, xp, yp, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :CIO, accuracy = :reduced, option = :GCRS, xp = xp, yp = yp)
-        @test ter2cel(jd_high, jd_low, delta_t, 1, 1, 0, xp, yp, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :reduced, option = :GCRS, xp = xp, yp = yp)
-        @test ter2cel(jd_high, jd_low, delta_t, 1, 1, 1, xp, yp, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :reduced, option = :equinox, xp = xp, yp = yp)
-        # Now with zero xp and yp
-        @test ter2cel(jd_high, jd_low, delta_t, 1, 1, 0, 0.0, 0.0, pos) ≈ NOVAS.ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :reduced, option = :GCRS)
+        @test @testbench ter2cel(jd_high, jd_low, delta_t, pos; method = :CIO, accuracy = :full, option = :GCRS, xp = xp, yp = yp) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1}) (pos::Position)
+        @test @testbench ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :full, option = :GCRS, xp = xp, yp = yp) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1}) (pos::Position)
+        @test @testbench ter2cel(jd_high, jd_low, delta_t, pos; method = :CIO, accuracy = :reduced, option = :GCRS, xp = xp, yp = yp) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1}) (pos::Position)
+        @test @testbench ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :reduced, option = :GCRS, xp = xp, yp = yp) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1}) (pos::Position)
+        # Option only matters for method = :equinox
+        @test @testbench ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :full, option = :equinox, xp = xp, yp = yp) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1}) (pos::Position)
+        @test @testbench ter2cel(jd_high, jd_low, delta_t, pos; method = :equinox, accuracy = :reduced, option = :equinox, xp = xp, yp = yp) (jd_high::Range{Float64,0,1e7}) (jd_low::Range{Float64,0,1}) (delta_t::Range{Float64,-10,70}) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1}) (pos::Position)
     end
-    # Generate a random location
-    lat = rand(Cdouble) * 180 - 90
-    lon = rand(Cdouble) * 180 - 90
-    alt = rand(Cdouble) * 8000
-    temp = rand(Cdouble) * 50
-    pressure = rand(Cdouble) * 1000
-    location = NOVAS.OnSurface(lat, lon, alt, temp, pressure)
-    clocation = Ref{LibNOVAS.on_surface}(LibNOVAS.on_surface(lat, lon, alt, temp, pressure))
-    zd = rand() * 90
     @testset "refract" begin
-        @test refract(clocation, 1, zd) ≈ NOVAS.refract(location, zd; ref_option = :standard)
-        @test refract(clocation, 2, zd) ≈ NOVAS.refract(location, zd; ref_option = :location)
+        @test @testbench refract(location, zd; ref_option = :standard) (location::Location) (zd::Range{Float64,0,90})
+        @test @testbench refract(location, zd; ref_option = :location) (location::Location) (zd::Range{Float64,0,90})
     end
-    # Random coordinate
-    ra = rand() * 24
-    dec = rand() * 180 - 90
     @testset "equ2hor" begin
-        @test equ2hor(jd_high, delta_t, 0, xp, yp, clocation, ra, dec, 0) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :none)
-        @test equ2hor(jd_high, delta_t, 0, xp, yp, clocation, ra, dec, 1) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :standard)
-        @test equ2hor(jd_high, delta_t, 0, xp, yp, clocation, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :location)
-        @test equ2hor(jd_high, delta_t, 1, xp, yp, clocation, ra, dec, 0) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, xp = xp, yp = yp, ref_option = :none)
-        @test equ2hor(jd_high, delta_t, 1, xp, yp, clocation, ra, dec, 1) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, xp = xp, yp = yp, ref_option = :standard)
-        @test equ2hor(jd_high, delta_t, 1, xp, yp, clocation, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, xp = xp, yp = yp, ref_option = :location)
-        # And with zero polar motion
-        @test equ2hor(jd_high, delta_t, 0, 0.0, 0.0, clocation, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :full, ref_option = :location)
-        @test equ2hor(jd_high, delta_t, 1, 0.0, 0.0, clocation, ra, dec, 2) ≈ NOVAS.equ2hor(jd_high, delta_t, ra, dec, location; accuracy = :reduced, ref_option = :location)
+        @testbench equ2hor(jd_ut1, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :none) (jd_ut1::Range{Float64,0,1e7}) (delta_t::Range{Float64,-10,70}) (ra::Range{Float64,0,24}) (dec::Range{Float64,0,360}) (location::Location) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
+        @testbench equ2hor(jd_ut1, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :standard) (jd_ut1::Range{Float64,0,1e7}) (delta_t::Range{Float64,-10,70}) (ra::Range{Float64,0,24}) (dec::Range{Float64,0,360}) (location::Location) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
+        @testbench equ2hor(jd_ut1, delta_t, ra, dec, location; accuracy = :full, xp = xp, yp = yp, ref_option = :location) (jd_ut1::Range{Float64,0,1e7}) (delta_t::Range{Float64,-10,70}) (ra::Range{Float64,0,24}) (dec::Range{Float64,0,360}) (location::Location) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
+        @testbench equ2hor(jd_ut1, delta_t, ra, dec, location; accuracy = :reduced, xp = xp, yp = yp, ref_option = :none) (jd_ut1::Range{Float64,0,1e7}) (delta_t::Range{Float64,-10,70}) (ra::Range{Float64,0,24}) (dec::Range{Float64,0,360}) (location::Location) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
+        @testbench equ2hor(jd_ut1, delta_t, ra, dec, location; accuracy = :reduced, xp = xp, yp = yp, ref_option = :standard) (jd_ut1::Range{Float64,0,1e7}) (delta_t::Range{Float64,-10,70}) (ra::Range{Float64,0,24}) (dec::Range{Float64,0,360}) (location::Location) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
+        @testbench equ2hor(jd_ut1, delta_t, ra, dec, location; accuracy = :reduced, xp = xp, yp = yp, ref_option = :location) (jd_ut1::Range{Float64,0,1e7}) (delta_t::Range{Float64,-10,70}) (ra::Range{Float64,0,24}) (dec::Range{Float64,0,360}) (location::Location) (xp::Range{Float64,-1,1}) (yp::Range{Float64,-1,1})
     end
-     =#
 end
 
 

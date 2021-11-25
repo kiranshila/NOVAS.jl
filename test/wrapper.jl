@@ -106,13 +106,11 @@ function ira_equinox(jd_tdb; equinox, accuracy)
     elseif accuracy == :reduced
         acc = 1
     end
-
     if equinox == :mean
         equ = 0
     elseif equinox == :true
         equ = 1
     end
-
     LibNOVAS.ira_equinox(jd_tdb, equ, acc)
 end
 
@@ -161,7 +159,7 @@ function sidereal_time(jd_high, jd_low, delta_t; gst_type, method, accuracy)
 
     if gst_type == :mean
         gstt = 0
-    elseif gst_type ==:apparent
+    elseif gst_type == :apparent
         gstt = 1
     end
 
@@ -194,21 +192,66 @@ function spin(angle, pos)
 
 end
 
-function ter2cel(jd_ut_high, jd_ut_low, delta_t, method, accuracy, option, xp, yp, vec)
+function ter2cel(jd_ut_high, jd_ut_low, delta_t, pos; method, accuracy, option, xp, yp)
+    if accuracy == :full
+        acc = 0
+    elseif accuracy == :reduced
+        acc = 1
+    end
+    if method == :CIO
+        meth = 0
+    elseif method == :equinox
+        meth = 1
+    end
+    if option == :GCRS
+        opt = 0
+    elseif option == :equinox
+        opt = 1
+    end
     vec2 = zeros(Cdouble, 3)
-    LibNOVAS.ter2cel(jd_ut_high, jd_ut_low, delta_t, method, accuracy, option, xp, yp, vec, vec2)
+    LibNOVAS.ter2cel(jd_ut_high, jd_ut_low, delta_t, meth, acc, opt, xp, yp, pos, vec2)
     return vec2
 end
 
-function refract(location, ref_option::Int, zd_obs::Real)
-    LibNOVAS.refract(location, ref_option, zd_obs)
+function refract(location, zd_obs; ref_option)
+    if ref_option == :standard
+        ro = 1
+    elseif ref_option == :location
+        ro = 2
+    end
+    loc = convert(NOVAS.LibNOVAS.on_surface, location)
+    LibNOVAS.refract(Ref{NOVAS.LibNOVAS.on_surface}(loc), ro, zd_obs)
 end
 
-function equ2hor(jd_ut1, delta_t, accuracy, xp, yp, location, ra, dec, ref_option)
+function equ2hor(jd_ut1, delta_t, ra, dec, location; accuracy, xp, yp, ref_option)
     zd = Ref{Cdouble}(0.0)
     az = Ref{Cdouble}(0.0)
     rar = Ref{Cdouble}(0.0)
     decr = Ref{Cdouble}(0.0)
-    LibNOVAS.equ2hor(jd_ut1, delta_t, accuracy, xp, yp, location, ra, dec, ref_option, zd, az, rar, decr)
+    if accuracy == :full
+        acc = 0
+    elseif accuracy == :reduced
+        acc = 1
+    end
+    if ref_option == :none
+        ro = 0
+    elseif ref_option == :standard
+        ro = 1
+    elseif ref_option == :location
+        ro = 2
+    end
+    loc = Ref{NOVAS.LibNOVAS.on_surface}(convert(NOVAS.LibNOVAS.on_surface, location))
+    LibNOVAS.equ2hor(jd_ut1, delta_t, acc, xp, yp, loc, ra, dec, ro, zd, az, rar, decr)
     return zd[], az[], rar[], decr[]
+end
+
+import Base.convert
+
+function Base.convert(::Type{NOVAS.LibNOVAS.on_surface}, obj::OnSurface{Float64})
+    # There's gotta be a better way to do this
+    NOVAS.LibNOVAS.on_surface(obj.latitude,
+        obj.longitude,
+        obj.height,
+        obj.temperature,
+        obj.pressure)
 end
