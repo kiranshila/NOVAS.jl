@@ -1,10 +1,6 @@
 module NOVAS
 
-using DataDeps,
-    LinearAlgebra,
-    Memoize,
-    StaticArrays,
-    DelimitedFiles
+using DataDeps, LinearAlgebra, Memoize, StaticArrays, DelimitedFiles
 
 include("init.jl")
 include("constants.jl")

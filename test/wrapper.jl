@@ -8,7 +8,7 @@ function fund_args(t)
 end
 
 function norm_ang(angle)
-    LibNOVAS.norm_ang(angle)
+    return LibNOVAS.norm_ang(angle)
 end
 
 function ee_ct(jd_high, jd_low; accuracy)
@@ -17,7 +17,7 @@ function ee_ct(jd_high, jd_low; accuracy)
     elseif accuracy == :reduced
         acc = 1
     end
-    LibNOVAS.ee_ct(jd_high, jd_low, acc)
+    return LibNOVAS.ee_ct(jd_high, jd_low, acc)
 end
 
 function iau2000a(jd_high, jd_low)
@@ -62,7 +62,7 @@ function e_tilt(jd_tdb; accuracy)
 end
 
 function mean_obliq(jd_tdb)
-    LibNOVAS.mean_obliq(jd_tdb)
+    return LibNOVAS.mean_obliq(jd_tdb)
 end
 
 function frame_tie(pos, direction)
@@ -111,7 +111,7 @@ function ira_equinox(jd_tdb; equinox, accuracy)
     elseif equinox == :true
         equ = 1
     end
-    LibNOVAS.ira_equinox(jd_tdb, equ, acc)
+    return LibNOVAS.ira_equinox(jd_tdb, equ, acc)
 end
 
 function cio_location(jd_tdb; accuracy)
@@ -140,7 +140,7 @@ function cio_basis(jd_tdb, ra_cio; accuracy)
 end
 
 function era(jd_high, jd_low)
-    LibNOVAS.era(jd_high, jd_low)
+    return LibNOVAS.era(jd_high, jd_low)
 end
 
 function tdb2tt(jdb_jd)
@@ -189,7 +189,6 @@ function spin(angle, pos)
     pos2 = zeros(Cdouble, 3)
     LibNOVAS.spin(angle, pos, pos2)
     return pos2
-
 end
 
 function ter2cel(jd_ut_high, jd_ut_low, delta_t, pos; method, accuracy, option, xp, yp)
@@ -220,7 +219,7 @@ function refract(location, zd_obs; ref_option)
         ro = 2
     end
     loc = convert(NOVAS.LibNOVAS.on_surface, location)
-    LibNOVAS.refract(Ref{NOVAS.LibNOVAS.on_surface}(loc), ro, zd_obs)
+    return LibNOVAS.refract(Ref{NOVAS.LibNOVAS.on_surface}(loc), ro, zd_obs)
 end
 
 function equ2hor(jd_ut1, delta_t, ra, dec, location; accuracy, xp, yp, ref_option)
@@ -249,9 +248,6 @@ import Base.convert
 
 function Base.convert(::Type{NOVAS.LibNOVAS.on_surface}, obj::OnSurface{Float64})
     # There's gotta be a better way to do this
-    NOVAS.LibNOVAS.on_surface(obj.latitude,
-        obj.longitude,
-        obj.height,
-        obj.temperature,
-        obj.pressure)
+    return NOVAS.LibNOVAS.on_surface(obj.latitude, obj.longitude, obj.height,
+                                     obj.temperature, obj.pressure)
 end

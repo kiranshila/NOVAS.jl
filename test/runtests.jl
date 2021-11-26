@@ -1,3 +1,5 @@
+#! format: off
+# This file is gonna be a hot mess anyway, no reason to format it
 using Test, CSV
 
 include("utils.jl")

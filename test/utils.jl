@@ -10,12 +10,13 @@ import Base.isapprox
 Base.isapprox(x::Tuple, y::Tuple; kws...) = isapprox(collect(x), collect(y); kws...)
 
 # Setup record of benchmark results
-results = DataFrame(fname = String[], c_time = Float64[], julia_time = Float64[], speedup = Float64[])
+results = DataFrame(; fname=String[], c_time=Float64[], julia_time=Float64[],
+                    speedup=Float64[])
 
 # Benchmark using curried f from RPT
 function quickbench(f::Function, types)
     genargs = () -> RandomizedPropertyTest.generate(rng, types)
-    median(@benchmark $f($genargs()...)).time
+    return median(@benchmark $f($genargs()...)).time
 end
 
 # Stolen from RandomizedPropertyTest
@@ -51,8 +52,9 @@ macro testbench(args...)
     c_fexpr = esc(Expr(:(->), nametuple, expr))
     j_fexpr = esc(Expr(:(->), nametuple, NOVAS_expr))
     return quote
-        test_result = RandomizedPropertyTest.do_quickcheck($test_fexpr, $exprstr, $namestrs, $typetuple, $nexpr)
-        if test_result && !haskey(ENV,"JULIA_DONT_BENCH")
+        test_result = RandomizedPropertyTest.do_quickcheck($test_fexpr, $exprstr, $namestrs,
+                                                           $typetuple, $nexpr)
+        if test_result && !haskey(ENV, "JULIA_DONT_BENCH")
             ctime = quickbench($c_fexpr, $typetuple)
             jtime = quickbench($j_fexpr, $typetuple)
             speedup = ctime / jtime
@@ -74,5 +76,5 @@ function RandomizedPropertyTest.generate(rng::AbstractRNG, _::Type{Location})
     alt = rand(Cdouble) * 8000
     temp = rand(Cdouble) * 50
     pressure = rand(Cdouble) * 1000
-    NOVAS.OnSurface(lat, lon, alt, temp, pressure)
+    return NOVAS.OnSurface(lat, lon, alt, temp, pressure)
 end

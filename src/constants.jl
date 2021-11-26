@@ -27,9 +27,8 @@ const ANGVEL = 7.2921150e-5
 # (Sun mass / body mass).
 # MASS[0] = Earth/Moon barycenter, MASS[1] = Mercury, ...,
 # MASS[9] = Pluto, MASS[10] = Sun, MASS[11] = Moon.
-const RMASS = [328900.561400, 6023600.0, 408523.71,
-    332946.050895, 3098708.0, 1047.3486, 3497.898, 22902.98,
-    19412.24, 135200000.0, 1.0, 27068700.387534]
+const RMASS = [328900.561400, 6023600.0, 408523.71, 332946.050895, 3098708.0, 1047.3486,
+               3497.898, 22902.98, 19412.24, 135200000.0, 1.0, 27068700.387534]
 # Number of arcseconds in 360 degrees.
 const ASEC360 = 1296000.0
 # Angle conversion constants
@@ -40,6 +39,6 @@ const xi0 = -0.0166170 * ASEC2RAD
 const eta0 = -0.0068192 * ASEC2RAD
 const da0 = -0.01460 * ASEC2RAD
 
-const frame_tie_rot = [1-0.5(da0^2+xi0^2) -da0 xi0
-    da0 1-0.5(da0^2+eta0^2) eta0
-    -xi0 -eta0 1-0.5(eta0^2+xi0^2)]
+const frame_tie_rot = [1-0.5(da0^2 + xi0^2) -da0 xi0
+                       da0 1-0.5(da0^2 + eta0^2) eta0
+                       -xi0 -eta0 1-0.5(eta0^2 + xi0^2)]

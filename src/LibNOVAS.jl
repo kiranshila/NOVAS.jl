@@ -7,23 +7,33 @@ export NOVAS_jll
 using CEnum
 
 function solarsystem(tjd, body, origin, position, velocity)
-    ccall((:solarsystem, libnovas), Cshort, (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), tjd, body, origin, position, velocity)
+    return ccall((:solarsystem, libnovas), Cshort,
+                 (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), tjd, body, origin,
+                 position, velocity)
 end
 
 function solarsystem_hp(tjd, body, origin, position, velocity)
-    ccall((:solarsystem_hp, libnovas), Cshort, (Ptr{Cdouble}, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), tjd, body, origin, position, velocity)
+    return ccall((:solarsystem_hp, libnovas), Cshort,
+                 (Ptr{Cdouble}, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), tjd, body,
+                 origin, position, velocity)
 end
 
 function iau2000a(jd_high, jd_low, dpsi, deps)
-    ccall((:iau2000a, libnovas), Cvoid, (Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_high, jd_low, dpsi, deps)
+    return ccall((:iau2000a, libnovas), Cvoid,
+                 (Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_high, jd_low, dpsi,
+                 deps)
 end
 
 function iau2000b(jd_high, jd_low, dpsi, deps)
-    ccall((:iau2000b, libnovas), Cvoid, (Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_high, jd_low, dpsi, deps)
+    return ccall((:iau2000b, libnovas), Cvoid,
+                 (Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_high, jd_low, dpsi,
+                 deps)
 end
 
 function nu2000k(jd_high, jd_low, dpsi, deps)
-    ccall((:nu2000k, libnovas), Cvoid, (Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_high, jd_low, dpsi, deps)
+    return ccall((:nu2000k, libnovas), Cvoid,
+                 (Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_high, jd_low, dpsi,
+                 deps)
 end
 
 struct cat_entry
@@ -78,303 +88,433 @@ struct ra_of_cio
 end
 
 function readeph(mp, name, jd, err)
-    ccall((:readeph, libnovas), Ptr{Cdouble}, (Cint, Ptr{Cchar}, Cdouble, Ptr{Cint}), mp, name, jd, err)
+    return ccall((:readeph, libnovas), Ptr{Cdouble}, (Cint, Ptr{Cchar}, Cdouble, Ptr{Cint}),
+                 mp, name, jd, err)
 end
 
 function app_star(jd_tt, star, accuracy, ra, dec)
-    ccall((:app_star, libnovas), Cshort, (Cdouble, Ptr{cat_entry}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, star, accuracy, ra, dec)
+    return ccall((:app_star, libnovas), Cshort,
+                 (Cdouble, Ptr{cat_entry}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, star,
+                 accuracy, ra, dec)
 end
 
 function virtual_star(jd_tt, star, accuracy, ra, dec)
-    ccall((:virtual_star, libnovas), Cshort, (Cdouble, Ptr{cat_entry}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, star, accuracy, ra, dec)
+    return ccall((:virtual_star, libnovas), Cshort,
+                 (Cdouble, Ptr{cat_entry}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, star,
+                 accuracy, ra, dec)
 end
 
 function astro_star(jd_tt, star, accuracy, ra, dec)
-    ccall((:astro_star, libnovas), Cshort, (Cdouble, Ptr{cat_entry}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, star, accuracy, ra, dec)
+    return ccall((:astro_star, libnovas), Cshort,
+                 (Cdouble, Ptr{cat_entry}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, star,
+                 accuracy, ra, dec)
 end
 
 function app_planet(jd_tt, ss_body, accuracy, ra, dec, dis)
-    ccall((:app_planet, libnovas), Cshort, (Cdouble, Ptr{object}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, ss_body, accuracy, ra, dec, dis)
+    return ccall((:app_planet, libnovas), Cshort,
+                 (Cdouble, Ptr{object}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
+                 jd_tt, ss_body, accuracy, ra, dec, dis)
 end
 
 function virtual_planet(jd_tt, ss_body, accuracy, ra, dec, dis)
-    ccall((:virtual_planet, libnovas), Cshort, (Cdouble, Ptr{object}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, ss_body, accuracy, ra, dec, dis)
+    return ccall((:virtual_planet, libnovas), Cshort,
+                 (Cdouble, Ptr{object}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
+                 jd_tt, ss_body, accuracy, ra, dec, dis)
 end
 
 function astro_planet(jd_tt, ss_body, accuracy, ra, dec, dis)
-    ccall((:astro_planet, libnovas), Cshort, (Cdouble, Ptr{object}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, ss_body, accuracy, ra, dec, dis)
+    return ccall((:astro_planet, libnovas), Cshort,
+                 (Cdouble, Ptr{object}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
+                 jd_tt, ss_body, accuracy, ra, dec, dis)
 end
 
 function topo_star(jd_tt, delta_t, star, position, accuracy, ra, dec)
-    ccall((:topo_star, libnovas), Cshort, (Cdouble, Cdouble, Ptr{cat_entry}, Ptr{on_surface}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, delta_t, star, position, accuracy, ra, dec)
+    return ccall((:topo_star, libnovas), Cshort,
+                 (Cdouble, Cdouble, Ptr{cat_entry}, Ptr{on_surface}, Cshort, Ptr{Cdouble},
+                  Ptr{Cdouble}), jd_tt, delta_t, star, position, accuracy, ra, dec)
 end
 
 function local_star(jd_tt, delta_t, star, position, accuracy, ra, dec)
-    ccall((:local_star, libnovas), Cshort, (Cdouble, Cdouble, Ptr{cat_entry}, Ptr{on_surface}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, delta_t, star, position, accuracy, ra, dec)
+    return ccall((:local_star, libnovas), Cshort,
+                 (Cdouble, Cdouble, Ptr{cat_entry}, Ptr{on_surface}, Cshort, Ptr{Cdouble},
+                  Ptr{Cdouble}), jd_tt, delta_t, star, position, accuracy, ra, dec)
 end
 
 function topo_planet(jd_tt, ss_body, delta_t, position, accuracy, ra, dec, dis)
-    ccall((:topo_planet, libnovas), Cshort, (Cdouble, Ptr{object}, Cdouble, Ptr{on_surface}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, ss_body, delta_t, position, accuracy, ra, dec, dis)
+    return ccall((:topo_planet, libnovas), Cshort,
+                 (Cdouble, Ptr{object}, Cdouble, Ptr{on_surface}, Cshort, Ptr{Cdouble},
+                  Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, ss_body, delta_t, position, accuracy,
+                 ra, dec, dis)
 end
 
 function local_planet(jd_tt, ss_body, delta_t, position, accuracy, ra, dec, dis)
-    ccall((:local_planet, libnovas), Cshort, (Cdouble, Ptr{object}, Cdouble, Ptr{on_surface}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, ss_body, delta_t, position, accuracy, ra, dec, dis)
+    return ccall((:local_planet, libnovas), Cshort,
+                 (Cdouble, Ptr{object}, Cdouble, Ptr{on_surface}, Cshort, Ptr{Cdouble},
+                  Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, ss_body, delta_t, position, accuracy,
+                 ra, dec, dis)
 end
 
 function mean_star(jd_tt, ra, dec, accuracy, ira, idec)
-    ccall((:mean_star, libnovas), Cshort, (Cdouble, Cdouble, Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, ra, dec, accuracy, ira, idec)
+    return ccall((:mean_star, libnovas), Cshort,
+                 (Cdouble, Cdouble, Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, ra,
+                 dec, accuracy, ira, idec)
 end
 
 function place(jd_tt, cel_object, location, delta_t, coord_sys, accuracy, output)
-    ccall((:place, libnovas), Cshort, (Cdouble, Ptr{object}, Ptr{observer}, Cdouble, Cshort, Cshort, Ptr{sky_pos}), jd_tt, cel_object, location, delta_t, coord_sys, accuracy, output)
+    return ccall((:place, libnovas), Cshort,
+                 (Cdouble, Ptr{object}, Ptr{observer}, Cdouble, Cshort, Cshort,
+                  Ptr{sky_pos}), jd_tt, cel_object, location, delta_t, coord_sys, accuracy,
+                 output)
 end
 
 function equ2gal(rai, deci, glon, glat)
-    ccall((:equ2gal, libnovas), Cvoid, (Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), rai, deci, glon, glat)
+    return ccall((:equ2gal, libnovas), Cvoid,
+                 (Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), rai, deci, glon, glat)
 end
 
 function equ2ecl(jd_tt, coord_sys, accuracy, ra, dec, elon, elat)
-    ccall((:equ2ecl, libnovas), Cshort, (Cdouble, Cshort, Cshort, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, coord_sys, accuracy, ra, dec, elon, elat)
+    return ccall((:equ2ecl, libnovas), Cshort,
+                 (Cdouble, Cshort, Cshort, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}),
+                 jd_tt, coord_sys, accuracy, ra, dec, elon, elat)
 end
 
 function equ2ecl_vec(jd_tt, coord_sys, accuracy, pos1, pos2)
-    ccall((:equ2ecl_vec, libnovas), Cshort, (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, coord_sys, accuracy, pos1, pos2)
+    return ccall((:equ2ecl_vec, libnovas), Cshort,
+                 (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, coord_sys,
+                 accuracy, pos1, pos2)
 end
 
 function ecl2equ_vec(jd_tt, coord_sys, accuracy, pos1, pos2)
-    ccall((:ecl2equ_vec, libnovas), Cshort, (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, coord_sys, accuracy, pos1, pos2)
+    return ccall((:ecl2equ_vec, libnovas), Cshort,
+                 (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, coord_sys,
+                 accuracy, pos1, pos2)
 end
 
-function equ2hor(jd_ut1, delta_t, accuracy, xp, yp, location, ra, dec, ref_option, zd, az, rar, decr)
-    ccall((:equ2hor, libnovas), Cvoid, (Cdouble, Cdouble, Cshort, Cdouble, Cdouble, Ptr{on_surface}, Cdouble, Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), jd_ut1, delta_t, accuracy, xp, yp, location, ra, dec, ref_option, zd, az, rar, decr)
+function equ2hor(jd_ut1, delta_t, accuracy, xp, yp, location, ra, dec, ref_option, zd, az,
+                 rar, decr)
+    return ccall((:equ2hor, libnovas), Cvoid,
+                 (Cdouble, Cdouble, Cshort, Cdouble, Cdouble, Ptr{on_surface}, Cdouble,
+                  Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
+                 jd_ut1, delta_t, accuracy, xp, yp, location, ra, dec, ref_option, zd, az,
+                 rar, decr)
 end
 
 function gcrs2equ(jd_tt, coord_sys, accuracy, rag, decg, ra, dec)
-    ccall((:gcrs2equ, libnovas), Cshort, (Cdouble, Cshort, Cshort, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, coord_sys, accuracy, rag, decg, ra, dec)
+    return ccall((:gcrs2equ, libnovas), Cshort,
+                 (Cdouble, Cshort, Cshort, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}),
+                 jd_tt, coord_sys, accuracy, rag, decg, ra, dec)
 end
 
 function sidereal_time(jd_high, jd_low, delta_t, gst_type, method, accuracy, gst)
-    ccall((:sidereal_time, libnovas), Cshort, (Cdouble, Cdouble, Cdouble, Cshort, Cshort, Cshort, Ptr{Cdouble}), jd_high, jd_low, delta_t, gst_type, method, accuracy, gst)
+    return ccall((:sidereal_time, libnovas), Cshort,
+                 (Cdouble, Cdouble, Cdouble, Cshort, Cshort, Cshort, Ptr{Cdouble}), jd_high,
+                 jd_low, delta_t, gst_type, method, accuracy, gst)
 end
 
 function era(jd_high, jd_low)
-    ccall((:era, libnovas), Cdouble, (Cdouble, Cdouble), jd_high, jd_low)
+    return ccall((:era, libnovas), Cdouble, (Cdouble, Cdouble), jd_high, jd_low)
 end
 
-function ter2cel(jd_ut_high, jd_ut_low, delta_t, method, accuracy, option, xp, yp, vec1, vec2)
-    ccall((:ter2cel, libnovas), Cshort, (Cdouble, Cdouble, Cdouble, Cshort, Cshort, Cshort, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_ut_high, jd_ut_low, delta_t, method, accuracy, option, xp, yp, vec1, vec2)
+function ter2cel(jd_ut_high, jd_ut_low, delta_t, method, accuracy, option, xp, yp, vec1,
+                 vec2)
+    return ccall((:ter2cel, libnovas), Cshort,
+                 (Cdouble, Cdouble, Cdouble, Cshort, Cshort, Cshort, Cdouble, Cdouble,
+                  Ptr{Cdouble}, Ptr{Cdouble}), jd_ut_high, jd_ut_low, delta_t, method,
+                 accuracy, option, xp, yp, vec1, vec2)
 end
 
-function cel2ter(jd_ut_high, jd_ut_low, delta_t, method, accuracy, option, xp, yp, vec1, vec2)
-    ccall((:cel2ter, libnovas), Cshort, (Cdouble, Cdouble, Cdouble, Cshort, Cshort, Cshort, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), jd_ut_high, jd_ut_low, delta_t, method, accuracy, option, xp, yp, vec1, vec2)
+function cel2ter(jd_ut_high, jd_ut_low, delta_t, method, accuracy, option, xp, yp, vec1,
+                 vec2)
+    return ccall((:cel2ter, libnovas), Cshort,
+                 (Cdouble, Cdouble, Cdouble, Cshort, Cshort, Cshort, Cdouble, Cdouble,
+                  Ptr{Cdouble}, Ptr{Cdouble}), jd_ut_high, jd_ut_low, delta_t, method,
+                 accuracy, option, xp, yp, vec1, vec2)
 end
 
 function spin(angle, pos1, pos2)
-    ccall((:spin, libnovas), Cvoid, (Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), angle, pos1, pos2)
+    return ccall((:spin, libnovas), Cvoid, (Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), angle,
+                 pos1, pos2)
 end
 
 function wobble(tjd, direction, xp, yp, pos1, pos2)
-    ccall((:wobble, libnovas), Cvoid, (Cdouble, Cshort, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), tjd, direction, xp, yp, pos1, pos2)
+    return ccall((:wobble, libnovas), Cvoid,
+                 (Cdouble, Cshort, Cdouble, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), tjd,
+                 direction, xp, yp, pos1, pos2)
 end
 
 function terra(location, st, pos, vel)
-    ccall((:terra, libnovas), Cvoid, (Ptr{on_surface}, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), location, st, pos, vel)
+    return ccall((:terra, libnovas), Cvoid,
+                 (Ptr{on_surface}, Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), location, st, pos,
+                 vel)
 end
 
 function e_tilt(jd_tdb, accuracy, mobl, tobl, ee, dpsi, deps)
-    ccall((:e_tilt, libnovas), Cvoid, (Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), jd_tdb, accuracy, mobl, tobl, ee, dpsi, deps)
+    return ccall((:e_tilt, libnovas), Cvoid,
+                 (Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble},
+                  Ptr{Cdouble}), jd_tdb, accuracy, mobl, tobl, ee, dpsi, deps)
 end
 
 function cel_pole(tjd, type, dpole1, dpole2)
-    ccall((:cel_pole, libnovas), Cshort, (Cdouble, Cshort, Cdouble, Cdouble), tjd, type, dpole1, dpole2)
+    return ccall((:cel_pole, libnovas), Cshort, (Cdouble, Cshort, Cdouble, Cdouble), tjd,
+                 type, dpole1, dpole2)
 end
 
 function ee_ct(jd_high, jd_low, accuracy)
-    ccall((:ee_ct, libnovas), Cdouble, (Cdouble, Cdouble, Cshort), jd_high, jd_low, accuracy)
+    return ccall((:ee_ct, libnovas), Cdouble, (Cdouble, Cdouble, Cshort), jd_high, jd_low,
+                 accuracy)
 end
 
 function frame_tie(pos1, direction, pos2)
-    ccall((:frame_tie, libnovas), Cvoid, (Ptr{Cdouble}, Cshort, Ptr{Cdouble}), pos1, direction, pos2)
+    return ccall((:frame_tie, libnovas), Cvoid, (Ptr{Cdouble}, Cshort, Ptr{Cdouble}), pos1,
+                 direction, pos2)
 end
 
 function proper_motion(jd_tdb1, pos, vel, jd_tdb2, pos2)
-    ccall((:proper_motion, libnovas), Cvoid, (Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), jd_tdb1, pos, vel, jd_tdb2, pos2)
+    return ccall((:proper_motion, libnovas), Cvoid,
+                 (Cdouble, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), jd_tdb1, pos,
+                 vel, jd_tdb2, pos2)
 end
 
 function bary2obs(pos, pos_obs, pos2, lighttime)
-    ccall((:bary2obs, libnovas), Cvoid, (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), pos, pos_obs, pos2, lighttime)
+    return ccall((:bary2obs, libnovas), Cvoid,
+                 (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), pos, pos_obs,
+                 pos2, lighttime)
 end
 
 function geo_posvel(jd_tt, delta_t, accuracy, obs, pos, vel)
-    ccall((:geo_posvel, libnovas), Cshort, (Cdouble, Cdouble, Cshort, Ptr{observer}, Ptr{Cdouble}, Ptr{Cdouble}), jd_tt, delta_t, accuracy, obs, pos, vel)
+    return ccall((:geo_posvel, libnovas), Cshort,
+                 (Cdouble, Cdouble, Cshort, Ptr{observer}, Ptr{Cdouble}, Ptr{Cdouble}),
+                 jd_tt, delta_t, accuracy, obs, pos, vel)
 end
 
 function light_time(jd_tdb, ss_object, pos_obs, tlight0, accuracy, pos, tlight)
-    ccall((:light_time, libnovas), Cshort, (Cdouble, Ptr{object}, Ptr{Cdouble}, Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tdb, ss_object, pos_obs, tlight0, accuracy, pos, tlight)
+    return ccall((:light_time, libnovas), Cshort,
+                 (Cdouble, Ptr{object}, Ptr{Cdouble}, Cdouble, Cshort, Ptr{Cdouble},
+                  Ptr{Cdouble}), jd_tdb, ss_object, pos_obs, tlight0, accuracy, pos, tlight)
 end
 
 function d_light(pos1, pos_obs)
-    ccall((:d_light, libnovas), Cdouble, (Ptr{Cdouble}, Ptr{Cdouble}), pos1, pos_obs)
+    return ccall((:d_light, libnovas), Cdouble, (Ptr{Cdouble}, Ptr{Cdouble}), pos1, pos_obs)
 end
 
 function grav_def(jd_tdb, loc_code, accuracy, pos1, pos_obs, pos2)
-    ccall((:grav_def, libnovas), Cshort, (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), jd_tdb, loc_code, accuracy, pos1, pos_obs, pos2)
+    return ccall((:grav_def, libnovas), Cshort,
+                 (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
+                 jd_tdb, loc_code, accuracy, pos1, pos_obs, pos2)
 end
 
 function grav_vec(pos1, pos_obs, pos_body, rmass, pos2)
-    ccall((:grav_vec, libnovas), Cvoid, (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), pos1, pos_obs, pos_body, rmass, pos2)
+    return ccall((:grav_vec, libnovas), Cvoid,
+                 (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), pos1,
+                 pos_obs, pos_body, rmass, pos2)
 end
 
 function aberration(pos, ve, lighttime, pos2)
-    ccall((:aberration, libnovas), Cvoid, (Ptr{Cdouble}, Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), pos, ve, lighttime, pos2)
+    return ccall((:aberration, libnovas), Cvoid,
+                 (Ptr{Cdouble}, Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), pos, ve, lighttime,
+                 pos2)
 end
 
 function rad_vel(cel_object, pos, vel, vel_obs, d_obs_geo, d_obs_sun, d_obj_sun, rv)
-    ccall((:rad_vel, libnovas), Cvoid, (Ptr{object}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}), cel_object, pos, vel, vel_obs, d_obs_geo, d_obs_sun, d_obj_sun, rv)
+    return ccall((:rad_vel, libnovas), Cvoid,
+                 (Ptr{object}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cdouble, Cdouble,
+                  Cdouble, Ptr{Cdouble}), cel_object, pos, vel, vel_obs, d_obs_geo,
+                 d_obs_sun, d_obj_sun, rv)
 end
 
 function precession(jd_tdb1, pos1, jd_tdb2, pos2)
-    ccall((:precession, libnovas), Cshort, (Cdouble, Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), jd_tdb1, pos1, jd_tdb2, pos2)
+    return ccall((:precession, libnovas), Cshort,
+                 (Cdouble, Ptr{Cdouble}, Cdouble, Ptr{Cdouble}), jd_tdb1, pos1, jd_tdb2,
+                 pos2)
 end
 
 function nutation(jd_tdb, direction, accuracy, pos, pos2)
-    ccall((:nutation, libnovas), Cvoid, (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tdb, direction, accuracy, pos, pos2)
+    return ccall((:nutation, libnovas), Cvoid,
+                 (Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd_tdb, direction,
+                 accuracy, pos, pos2)
 end
 
 function nutation_angles(t, accuracy, dpsi, deps)
-    ccall((:nutation_angles, libnovas), Cvoid, (Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), t, accuracy, dpsi, deps)
+    return ccall((:nutation_angles, libnovas), Cvoid,
+                 (Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), t, accuracy, dpsi, deps)
 end
 
 function fund_args(t, a)
-    ccall((:fund_args, libnovas), Cvoid, (Cdouble, Ptr{Cdouble}), t, a)
+    return ccall((:fund_args, libnovas), Cvoid, (Cdouble, Ptr{Cdouble}), t, a)
 end
 
 function mean_obliq(jd_tdb)
-    ccall((:mean_obliq, libnovas), Cdouble, (Cdouble,), jd_tdb)
+    return ccall((:mean_obliq, libnovas), Cdouble, (Cdouble,), jd_tdb)
 end
 
 function vector2radec(pos, ra, dec)
-    ccall((:vector2radec, libnovas), Cshort, (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), pos, ra, dec)
+    return ccall((:vector2radec, libnovas), Cshort,
+                 (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), pos, ra, dec)
 end
 
 function radec2vector(ra, dec, dist, vector)
-    ccall((:radec2vector, libnovas), Cvoid, (Cdouble, Cdouble, Cdouble, Ptr{Cdouble}), ra, dec, dist, vector)
+    return ccall((:radec2vector, libnovas), Cvoid,
+                 (Cdouble, Cdouble, Cdouble, Ptr{Cdouble}), ra, dec, dist, vector)
 end
 
 function starvectors(star, pos, vel)
-    ccall((:starvectors, libnovas), Cvoid, (Ptr{cat_entry}, Ptr{Cdouble}, Ptr{Cdouble}), star, pos, vel)
+    return ccall((:starvectors, libnovas), Cvoid,
+                 (Ptr{cat_entry}, Ptr{Cdouble}, Ptr{Cdouble}), star, pos, vel)
 end
 
 function tdb2tt(tdb_jd, tt_jd, secdiff)
-    ccall((:tdb2tt, libnovas), Cvoid, (Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), tdb_jd, tt_jd, secdiff)
+    return ccall((:tdb2tt, libnovas), Cvoid, (Cdouble, Ptr{Cdouble}, Ptr{Cdouble}), tdb_jd,
+                 tt_jd, secdiff)
 end
 
 function cio_ra(jd_tt, accuracy, ra_cio)
-    ccall((:cio_ra, libnovas), Cshort, (Cdouble, Cshort, Ptr{Cdouble}), jd_tt, accuracy, ra_cio)
+    return ccall((:cio_ra, libnovas), Cshort, (Cdouble, Cshort, Ptr{Cdouble}), jd_tt,
+                 accuracy, ra_cio)
 end
 
 function cio_location(jd_tdb, accuracy, ra_cio, ref_sys)
-    ccall((:cio_location, libnovas), Cshort, (Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cshort}), jd_tdb, accuracy, ra_cio, ref_sys)
+    return ccall((:cio_location, libnovas), Cshort,
+                 (Cdouble, Cshort, Ptr{Cdouble}, Ptr{Cshort}), jd_tdb, accuracy, ra_cio,
+                 ref_sys)
 end
 
 function cio_basis(jd_tdb, ra_cio, ref_sys, accuracy, x, y, z)
-    ccall((:cio_basis, libnovas), Cshort, (Cdouble, Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), jd_tdb, ra_cio, ref_sys, accuracy, x, y, z)
+    return ccall((:cio_basis, libnovas), Cshort,
+                 (Cdouble, Cdouble, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble},
+                  Ptr{Cdouble}), jd_tdb, ra_cio, ref_sys, accuracy, x, y, z)
 end
 
 function cio_array(jd_tdb, n_pts, cio)
-    ccall((:cio_array, libnovas), Cshort, (Cdouble, Clong, Ptr{ra_of_cio}), jd_tdb, n_pts, cio)
+    return ccall((:cio_array, libnovas), Cshort, (Cdouble, Clong, Ptr{ra_of_cio}), jd_tdb,
+                 n_pts, cio)
 end
 
 function ira_equinox(jd_tdb, equinox, accuracy)
-    ccall((:ira_equinox, libnovas), Cdouble, (Cdouble, Cshort, Cshort), jd_tdb, equinox, accuracy)
+    return ccall((:ira_equinox, libnovas), Cdouble, (Cdouble, Cshort, Cshort), jd_tdb,
+                 equinox, accuracy)
 end
 
 function ephemeris(jd, cel_obj, origin, accuracy, pos, vel)
-    ccall((:ephemeris, libnovas), Cshort, (Ptr{Cdouble}, Ptr{object}, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jd, cel_obj, origin, accuracy, pos, vel)
+    return ccall((:ephemeris, libnovas), Cshort,
+                 (Ptr{Cdouble}, Ptr{object}, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}),
+                 jd, cel_obj, origin, accuracy, pos, vel)
 end
 
 function transform_hip(hipparcos, hip_2000)
-    ccall((:transform_hip, libnovas), Cvoid, (Ptr{cat_entry}, Ptr{cat_entry}), hipparcos, hip_2000)
+    return ccall((:transform_hip, libnovas), Cvoid, (Ptr{cat_entry}, Ptr{cat_entry}),
+                 hipparcos, hip_2000)
 end
 
 function transform_cat(option, date_incat, incat, date_newcat, newcat_id, newcat)
-    ccall((:transform_cat, libnovas), Cshort, (Cshort, Cdouble, Ptr{cat_entry}, Cdouble, Ptr{Cchar}, Ptr{cat_entry}), option, date_incat, incat, date_newcat, newcat_id, newcat)
+    return ccall((:transform_cat, libnovas), Cshort,
+                 (Cshort, Cdouble, Ptr{cat_entry}, Cdouble, Ptr{Cchar}, Ptr{cat_entry}),
+                 option, date_incat, incat, date_newcat, newcat_id, newcat)
 end
 
 function limb_angle(pos_obj, pos_obs, limb_ang, nadir_ang)
-    ccall((:limb_angle, libnovas), Cvoid, (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), pos_obj, pos_obs, limb_ang, nadir_ang)
+    return ccall((:limb_angle, libnovas), Cvoid,
+                 (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), pos_obj, pos_obs,
+                 limb_ang, nadir_ang)
 end
 
 function refract(location, ref_option, zd_obs)
-    ccall((:refract, libnovas), Cdouble, (Ptr{on_surface}, Cshort, Cdouble), location, ref_option, zd_obs)
+    return ccall((:refract, libnovas), Cdouble, (Ptr{on_surface}, Cshort, Cdouble),
+                 location, ref_option, zd_obs)
 end
 
 function julian_date(year, month, day, hour)
-    ccall((:julian_date, libnovas), Cdouble, (Cshort, Cshort, Cshort, Cdouble), year, month, day, hour)
+    return ccall((:julian_date, libnovas), Cdouble, (Cshort, Cshort, Cshort, Cdouble), year,
+                 month, day, hour)
 end
 
 function cal_date(tjd, year, month, day, hour)
-    ccall((:cal_date, libnovas), Cvoid, (Cdouble, Ptr{Cshort}, Ptr{Cshort}, Ptr{Cshort}, Ptr{Cdouble}), tjd, year, month, day, hour)
+    return ccall((:cal_date, libnovas), Cvoid,
+                 (Cdouble, Ptr{Cshort}, Ptr{Cshort}, Ptr{Cshort}, Ptr{Cdouble}), tjd, year,
+                 month, day, hour)
 end
 
 function norm_ang(angle)
-    ccall((:norm_ang, libnovas), Cdouble, (Cdouble,), angle)
+    return ccall((:norm_ang, libnovas), Cdouble, (Cdouble,), angle)
 end
 
-function make_cat_entry(star_name, catalog, star_num, ra, dec, pm_ra, pm_dec, parallax, rad_vel_, star)
-    ccall((:make_cat_entry, libnovas), Cshort, (Ptr{Cchar}, Ptr{Cchar}, Clong, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{cat_entry}), star_name, catalog, star_num, ra, dec, pm_ra, pm_dec, parallax, rad_vel_, star)
+function make_cat_entry(star_name, catalog, star_num, ra, dec, pm_ra, pm_dec, parallax,
+                        rad_vel_, star)
+    return ccall((:make_cat_entry, libnovas), Cshort,
+                 (Ptr{Cchar}, Ptr{Cchar}, Clong, Cdouble, Cdouble, Cdouble, Cdouble,
+                  Cdouble, Cdouble, Ptr{cat_entry}), star_name, catalog, star_num, ra, dec,
+                 pm_ra, pm_dec, parallax, rad_vel_, star)
 end
 
 function make_object(type, number, name, star_data, cel_obj)
-    ccall((:make_object, libnovas), Cshort, (Cshort, Cshort, Ptr{Cchar}, Ptr{cat_entry}, Ptr{object}), type, number, name, star_data, cel_obj)
+    return ccall((:make_object, libnovas), Cshort,
+                 (Cshort, Cshort, Ptr{Cchar}, Ptr{cat_entry}, Ptr{object}), type, number,
+                 name, star_data, cel_obj)
 end
 
 function make_observer(where, obs_surface, obs_space, obs)
-    ccall((:make_observer, libnovas), Cshort, (Cshort, Ptr{on_surface}, Ptr{in_space}, Ptr{observer}), where, obs_surface, obs_space, obs)
+    return ccall((:make_observer, libnovas), Cshort,
+                 (Cshort, Ptr{on_surface}, Ptr{in_space}, Ptr{observer}), where,
+                 obs_surface, obs_space, obs)
 end
 
 function make_observer_at_geocenter(obs_at_geocenter)
-    ccall((:make_observer_at_geocenter, libnovas), Cvoid, (Ptr{observer},), obs_at_geocenter)
+    return ccall((:make_observer_at_geocenter, libnovas), Cvoid, (Ptr{observer},),
+                 obs_at_geocenter)
 end
 
-function make_observer_on_surface(latitude, longitude, height, temperature, pressure, obs_on_surface)
-    ccall((:make_observer_on_surface, libnovas), Cvoid, (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{observer}), latitude, longitude, height, temperature, pressure, obs_on_surface)
+function make_observer_on_surface(latitude, longitude, height, temperature, pressure,
+                                  obs_on_surface)
+    return ccall((:make_observer_on_surface, libnovas), Cvoid,
+                 (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{observer}), latitude,
+                 longitude, height, temperature, pressure, obs_on_surface)
 end
 
 function make_observer_in_space(sc_pos, sc_vel, obs_in_space)
-    ccall((:make_observer_in_space, libnovas), Cvoid, (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{observer}), sc_pos, sc_vel, obs_in_space)
+    return ccall((:make_observer_in_space, libnovas), Cvoid,
+                 (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{observer}), sc_pos, sc_vel, obs_in_space)
 end
 
 function make_on_surface(latitude, longitude, height, temperature, pressure, obs_surface)
-    ccall((:make_on_surface, libnovas), Cvoid, (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{on_surface}), latitude, longitude, height, temperature, pressure, obs_surface)
+    return ccall((:make_on_surface, libnovas), Cvoid,
+                 (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{on_surface}), latitude,
+                 longitude, height, temperature, pressure, obs_surface)
 end
 
 function make_in_space(sc_pos, sc_vel, obs_space)
-    ccall((:make_in_space, libnovas), Cvoid, (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{in_space}), sc_pos, sc_vel, obs_space)
+    return ccall((:make_in_space, libnovas), Cvoid,
+                 (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{in_space}), sc_pos, sc_vel, obs_space)
 end
 
 function ephem_open(ephem_name, jd_begin, jd_end, de_number)
-    ccall((:ephem_open, libnovas), Cshort, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cshort}), ephem_name, jd_begin, jd_end, de_number)
+    return ccall((:ephem_open, libnovas), Cshort,
+                 (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cshort}), ephem_name,
+                 jd_begin, jd_end, de_number)
 end
 
 function ephem_close()
-    ccall((:ephem_close, libnovas), Cshort, ())
+    return ccall((:ephem_close, libnovas), Cshort, ())
 end
 
 function planet_ephemeris(tjd, target, center, position, velocity)
-    ccall((:planet_ephemeris, libnovas), Cshort, (Ptr{Cdouble}, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), tjd, target, center, position, velocity)
+    return ccall((:planet_ephemeris, libnovas), Cshort,
+                 (Ptr{Cdouble}, Cshort, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), tjd, target,
+                 center, position, velocity)
 end
 
 function state(jed, target, target_pos, target_vel)
-    ccall((:state, libnovas), Cshort, (Ptr{Cdouble}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jed, target, target_pos, target_vel)
+    return ccall((:state, libnovas), Cshort,
+                 (Ptr{Cdouble}, Cshort, Ptr{Cdouble}, Ptr{Cdouble}), jed, target,
+                 target_pos, target_vel)
 end
 
 function interpolate(buf, t, ncm, na, position, velocity)
-    ccall((:interpolate, libnovas), Cvoid, (Ptr{Cdouble}, Ptr{Cdouble}, Clong, Clong, Ptr{Cdouble}, Ptr{Cdouble}), buf, t, ncm, na, position, velocity)
+    return ccall((:interpolate, libnovas), Cvoid,
+                 (Ptr{Cdouble}, Ptr{Cdouble}, Clong, Clong, Ptr{Cdouble}, Ptr{Cdouble}),
+                 buf, t, ncm, na, position, velocity)
 end
 
 function split(tt, fr)
-    ccall((:split, libnovas), Cvoid, (Cdouble, Ptr{Cdouble}), tt, fr)
+    return ccall((:split, libnovas), Cvoid, (Cdouble, Ptr{Cdouble}), tt, fr)
 end
 
 const SIZE_OF_OBJ_NAME = 51

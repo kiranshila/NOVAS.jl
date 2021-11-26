@@ -14,7 +14,6 @@ versioninfo()
 using CSV, DataFrames
 ```
 
-
 ```@example bench
-CSV.File("../../benchmarks.csv") |> DataFrame
+DataFrame(CSV.File("../../benchmarks.csv"))
 ```
