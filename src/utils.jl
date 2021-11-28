@@ -16,7 +16,7 @@ Computes the fundamental arguments (mean elements) of the Sun and Moon.
 -`D`: Mean elongation of the Moon from the Sun
 -`Ω` Mean longitude of the Moon's ascending node
 """
-function fund_args(t::Real)
+function fund_args(t::T) where {T<:Real}
     l = 485868.249036 +
         t * (1717915923.2178 + t * (31.8792 + t * (0.051635 + t * (-0.00024470))))
     l′ = 1287104.79305 +
@@ -27,7 +27,8 @@ function fund_args(t::Real)
         t * (1602961601.2090 + t * (-6.3706 + t * (0.006593 + t * (-0.00003169))))
     Ω = 450160.398036 +
         t * (-6962890.5431 + t * (7.4722 + t * (0.007702 + t * (-0.00005939))))
-    return rem.([l, l′, F, D, Ω], ASEC360) .* ASEC2RAD
+    out = @SVector T[l, l′, F, D, Ω]
+    return @. rem(out, ASEC360) * ASEC2RAD
 end
 
 function read_nu2000k()
@@ -69,7 +70,7 @@ function norm_ang(angle::Real)
 end
 
 """
-    ee_ct(jd)
+    ee_ct(jd_high, jd_low)
 
 Computes the "complementary terms" of the equation of the equinoxes.
 
@@ -83,7 +84,7 @@ Computes the "complementary terms" of the equation of the equinoxes.
 function ee_ct(jd_high::T, jd_low::T; accuracy::Symbol=:full) where {T<:Real}
     t = ((jd_high - T0) + jd_low) / 36525.0
 
-    fa = zeros(T, 14)
+    fa = @MVector zeros(T, 14)
 
     if accuracy == :full
         # Fundamental arguments
@@ -122,7 +123,7 @@ function ee_ct(jd_high::T, jd_low::T; accuracy::Symbol=:full) where {T<:Real}
         # Evaluate the complementary terms.
         s0 = 0.0
         s1 = 0.0
-        for i in 1:33
+        @inbounds @simd for i in 1:33
             a = 0.0
             for j in 1:14
                 a += ke0[i, j] * fa[j]
@@ -130,7 +131,7 @@ function ee_ct(jd_high::T, jd_low::T; accuracy::Symbol=:full) where {T<:Real}
             s0 += se0[i, 1] * sin(a) + se0[i, 2] * cos(a)
         end
         a = 0.0
-        for j in 1:14
+        @inbounds @simd for j in 1:14
             a += ke1[j] * fa[j]
         end
         s1 += se1[1] * sin(a) + se1[2] * cos(a)

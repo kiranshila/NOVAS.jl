@@ -89,9 +89,9 @@ function nutation(jd_tdb::Real, pos::AbstractVector; accuracy::Symbol=:full,
     sobm, cobm = sincosd(oblm)
     sobt, cobt = sincosd(oblt)
     spsi, cpsi = sincos(psi * ASEC2RAD)
-    rot = [cpsi -spsi*cobm -spsi*sobm
-           spsi*cobt cpsi * cobm * cobt+sobm * sobt cpsi * sobm * cobt-cobm * sobt
-           spsi*sobt cpsi * cobm * sobt-sobm * cobt cpsi * sobm * sobt+cobm * cobt]
+    rot = @SMatrix [cpsi -spsi*cobm -spsi*sobm
+                    spsi*cobt cpsi * cobm * cobt+sobm * sobt cpsi * sobm * cobt-cobm * sobt
+                    spsi*sobt cpsi * cobm * sobt-sobm * cobt cpsi * sobm * sobt+cobm * cobt]
     # Transform Position
     if direction == :mean2true
         return rot * pos
@@ -137,9 +137,9 @@ Precesses equatorial rectangular coordinates from one epoch to another. One of t
     sd, cd = sincos(chia)
 
     # Construct precession rotation matrix
-    rot = [cd * cb-sb * sd * cc cd * sb * ca + sd * cc * cb * ca-sa * sd * sc cd*sb*sa+sd*cc*cb*sa+ca*sd*sc
-           -sd * cb-sb * cd * cc -sd * sb * ca + cd * cc * cb * ca-sa * cd * sc -sd*sb*sa+cd*cc*cb*sa+ca*cd*sc
-           sb*sc -sc * cb * ca-sa * cc -sc * cb * sa+cc * ca]
+    rot = @SMatrix [cd * cb-sb * sd * cc cd * sb * ca + sd * cc * cb * ca-sa * sd * sc cd*sb*sa+sd*cc*cb*sa+ca*sd*sc
+                    -sd * cb-sb * cd * cc -sd * sb * ca + cd * cc * cb * ca-sa * cd * sc -sd*sb*sa+cd*cc*cb*sa+ca*cd*sc
+                    sb*sc -sc * cb * ca-sa * cc -sc * cb * sa+cc * ca]
 
     # Perform rotation from epoch to J2000.0
     if jd_tdb2 == T0
@@ -214,14 +214,14 @@ Computes quantities related to the orientation of the Earth's rotation axis at J
 - `dpsi`: Nutation in longitude on arcseconds
 - `deps`: Nutation in obliquity in arcseconds
 """
-@memoize function e_tilt(jd_tdb::Real; accuracy::Symbol=:full)
+@memoize function e_tilt(jd_tdb::T; accuracy::Symbol=:full) where {T<:Real}
     # FIXME how do we include the PSI_COR and EPS_COR
 
     # Compute time in Julian centuries from epoch J2000.0
     t = (jd_tdb - T0) / 36525.0
     # Compute the nutation angles
     dp, de = nutation_angles(t; accuracy=accuracy)
-    c_terms = ee_ct(jd_tdb, zero(typeof(jd_tdb)); accuracy=accuracy) / ASEC2RAD
+    c_terms = ee_ct(jd_tdb, zero(T); accuracy=accuracy) / ASEC2RAD
     # Apply observed celestial pole offsets FIXME what do we do here?
     d_psi = dp # + PSI_COR
     d_eps = de # + EPS_COR
@@ -313,7 +313,7 @@ by the celestial intermediate pole and origin.
     z = frame_tie(w2, :dynamic2icrs)
     # Compute unit vectors x and y
     # First construct unit vector towards CIO in equator and equinox of date system
-    w0 = [cosd(ra_cio * 15), sind(ra_cio * 15), 0]
+    w0 = @SVector [cosd(ra_cio * 15), sind(ra_cio * 15), 0]
     # Rotate the vector into the GCRS to form unit vector x
     w1 = nutation(jd_tdb, w0; accuracy=accuracy, direction=:true2mean)
     w2 = precession(jd_tdb, w1, T0)
@@ -687,11 +687,11 @@ function equ2hor(jd_ut1::Real, delta_t::Real, ra::Real, dec::Real, location::OnS
     sindc, cosdc = sincosd(dec)
     sinra, cosra = sincosd(ra * 15)
     # Set up orthonomarl basis vectors in local Earth-fixed system
-    uze = [coslat * coslon, coslat * sinlon, sinlat]
+    uze = @SVector [coslat * coslon, coslat * sinlon, sinlat]
     # Define vector towards local north in Earth-fixed system
-    une = [-sinlat * coslon, -sinlat * sinlon, coslat]
+    une = @SVector [-sinlat * coslon, -sinlat * sinlon, coslat]
     # Define vector towards local west in Earth-fixed system
-    uwe = [sinlon, -coslon, 0.0]
+    uwe = @SVector [sinlon, -coslon, 0.0]
     # Obtain vectors in celestial system and rotate earth-fixed orthonormal basis to celestial system
     uz = ter2cel(jd_ut1, 0.0, delta_t, uze; accuracy=accuracy, xp=xp, yp=yp,
                  option=:equinox, method=:equinox)

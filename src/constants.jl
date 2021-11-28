@@ -39,6 +39,6 @@ const xi0 = -0.0166170 * ASEC2RAD
 const eta0 = -0.0068192 * ASEC2RAD
 const da0 = -0.01460 * ASEC2RAD
 
-const frame_tie_rot = [1-0.5(da0^2 + xi0^2) -da0 xi0
-                       da0 1-0.5(da0^2 + eta0^2) eta0
-                       -xi0 -eta0 1-0.5(eta0^2 + xi0^2)]
+const frame_tie_rot = @SMatrix [1-0.5(da0^2 + xi0^2) -da0 xi0
+                                da0 1-0.5(da0^2 + eta0^2) eta0
+                                -xi0 -eta0 1-0.5(eta0^2 + xi0^2)]
