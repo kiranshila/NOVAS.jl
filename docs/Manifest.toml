@@ -17,6 +17,11 @@ version = "0.1.0"
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 
+[[AstroAngles]]
+git-tree-sha1 = "41621fa5ed5f7614b75eea8e0b3cfd967b284c87"
+uuid = "5c4adb95-c1fc-4c53-b4ea-2a94080c53d2"
+version = "0.1.3"
+
 [[AstroTime]]
 deps = ["Dates", "EarthOrientation", "ItemGraphs", "LeapSeconds", "MacroTools", "MuladdMacro", "Reexport"]
 git-tree-sha1 = "b3217075a2453321b304746f64311e748f9725a7"

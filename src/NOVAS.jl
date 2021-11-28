@@ -1,6 +1,7 @@
 module NOVAS
 
 using DataDeps, LinearAlgebra, Memoize, StaticArrays, DelimitedFiles
+import Base.show
 
 include("init.jl")
 include("constants.jl")

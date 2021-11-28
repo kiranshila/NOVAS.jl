@@ -1,6 +1,6 @@
 export nutation_angles, mean_obliq, frame_tie, nutation, precession, cel_pole, e_tilt,
        ira_equinox, cio_location, cio_basis, era, tdb2tt, sidereal_time, wobble, spin,
-       ter2cel, OnSurface, refract, equ2hor
+       ter2cel, OnSurface, refract, equ2hor, CatEntry, Object, SkyPos, Observer, app_star, InSpace
 
 """
     nutation_angles(t)
@@ -751,4 +751,166 @@ function equ2hor(jd_ut1::Real, delta_t::Real, ra::Real, dec::Real, location::OnS
         end
     end
     return zd, az, rar, decr
+end
+
+struct CatEntry
+    starname::String
+    catalog::String
+    starnumber::Int
+    ra::Real
+    dec::Real
+    promora::Real
+    promodec::Real
+    parallax::Real
+    radialvelocity::Real
+end
+
+function show(io::IO, entry::CatEntry)
+    println(io, "Name:                  ", entry.starname)
+    println(io, "Catalog:               ", entry.catalog)
+    println(io, "Number:                ", entry.starnumber)
+    println(io, "Right Ascension:       ", entry.ra, " hr")
+    println(io, "Declination:           ", entry.dec, " deg")
+    println(io, "Proper motion in RA:   ", entry.promora, " mas/yr")
+    println(io, "Proper motion in dec:  ", entry.promodec, " mas/yr")
+    println(io, "Parallax:              ", entry.parallax, " mas")
+    return println(io, "Radial Velocity:       ", entry.radialvelocity, " km/s")
+end
+
+"""
+A celestial object of interest
+
+# Arguments
+- `type::Symbol`: `:major` planet, `:minor` planet, or `:extrasolar`
+- `number::Int`: Object number. For `type=:major`, Earth would be `3`, etc.
+For `:extrasolar` objects, set to `0` as the object is fully specified in `star`.
+- `name::String`: Name of object
+- `star::Union{Nothing,CatEntry}`: Astrometric data for any extrasolar celestial object
+
+Convenience constructors supplied for extrasolar sources where you only need to supply the `CatEntry`.
+"""
+struct Object
+    type::Symbol
+    number::Int
+    name::String
+    star::Union{Nothing,CatEntry}
+    function Object(type::Symbol, number::Int, name::String,
+                    star::Union{Nothing,CatEntry}=nothing)
+        @assert type ∈ Set([:major, :minor, :extrasolar])
+        @assert !((type == :extrasolar) && isnothing(star)) "Extrasolar sources must have star data"
+        @assert !((type == :extrasolar) && !iszero(number)) "Extrasolar number should be zero"
+        @assert !(!(type == :extrasolar) && iszero(number)) "Non-Extrasolar number should be nonzero"
+        return new(type, number, name, star)
+    end
+end
+
+Object(type::Symbol, star::CatEntry) = Object(type, 0, star.starname, star)
+
+function show(io::IO, obj::Object)
+    println(io, "Type:          ",
+            Dict(:major => "Major Planet", :minor => "Minor Planet",
+                 :extrasolar => "Extrasolar")[obj.type])
+    if !iszero(obj.number)
+        println(io, "Number:        ", obj.number)
+    end
+    println(io, "Name:          ", obj.name)
+    if !isnothing(obj.star)
+        println(io, "Catalog Entry: ", obj.star.catalog, " ", obj.star.starnumber)
+    end
+end
+
+"""
+The sky position of a celestial object.
+
+# Arguments
+- `r̂::AbstractVector`: Unit vector towards object
+- `ra::Real`: Apparent right ascension in hours
+- `dec::Real`: Apparent declination in degrees
+- `dis::Real`: True distance to solar systm body in AU
+- `rv::Real`: Radial velocity in km/s
+"""
+struct SkyPos
+    r̂::AbstractVector
+    ra::Real
+    dec::Real
+    dis::Real
+    rv::Real
+end
+
+"""
+The observer's location and velocity on a near-Earth spacecraft
+
+# Arguments
+- `sc_pos::AbstractVector`: Geocentric position vector in km
+- `sc_vel::AbstractVector`: Geocentric velocity vector (ẋ,ẏ,ż) in km/s
+"""
+struct InSpace
+    sc_pos::AbstractVector
+    sc_vel::AbstractVector
+end
+
+"""
+The location of an observer.
+Note, this is quite different from the C version as we will 
+use the union type to store the location instead of two potentially
+nil pointers. As such the names of the arguments differ and is incompatible with C.
+
+# Arguments
+- `type::Symbol`: Location is either at `:geocenter`, on the `:surface` of Earth, or in `:space`.
+In space implies on a near-earth spacecraft.
+- `loc::Union{OnSurface,InSpace}`: Location of observer
+"""
+struct Observer
+    type::Symbol
+    loc::Union{OnSurface,InSpace,Nothing}
+    function Observer(type::Symbol, loc::Union{OnSurface,InSpace,Nothing}=nothing)
+        @assert type ∈ Set([:geocenter, :surface, :space])
+        if type == :geocenter
+            @assert isnothing(loc) "loc must be empty for geocentric observers"
+        elseif type == :surface
+            @assert typeof(loc) == OnSurface "Observer on Earth needs location data"
+        elseif type == :space
+            @assert typeof(loc) == InSpace "Observer in space needs location data"
+        end
+        return new(type, loc)
+    end
+end
+
+function show(io::IO, obs::Observer)
+    if obs.type == :geocenter
+        println(io, "A geocentric observer")
+    elseif obs.type == :surface
+        println(io, "An observer on earth")
+    elseif obs.type == :space
+        prinlnt(io, "An observer in a near-Earth spacecraft")
+    end
+end
+
+"""
+    app_star(jd_tt,star)
+
+Computes the apparent place of a star at date `jd_tt`, givne its catalog
+mean place, proper motion, parallax, and radial velocity.
+
+# Arguments
+- `jd_tt::Real`: TT Julian date for apparent place
+- `star::CatEntry`: Catalog entry structure containing catalog data for the object in the ICRS
+
+# Optional arguments
+- `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
+
+# Returns
+`(ra,dec)` where
+- `ra`: Apparent right ascension in hours
+- `dec`: Apparent declination in degrees
+"""
+function app_star(jd_tt::Real, star::CatEntry; accuracy::Symbol=:full)
+    # Set up a structure of type `Object` containing the star data
+    # Located outside solar system
+    cel_obj = Object(:extrasolar, star)
+    # Compute the apparent place with a call to function `place`
+    sky_pos = place(jd_tt, cel_obj, Observer(:geocentric), 0.0; coord_sys=:true,
+                    accuracy=accuracy)
+    # Return ra and dec
+    return (sky_pos.ra, sky_pos.dec)
 end

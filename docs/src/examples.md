@@ -42,3 +42,32 @@ For example, we can add [uncertainty](https://eclipse.gsfc.nasa.gov/SEcat5/uncer
 using Measurements
 sidereal_time(jd_high, jd_low, ΔT ± 3)
 ```
+
+## Position of a Star
+
+This is adapted from the NOVASC manual, Example 1 in Chapter 3.
+
+Suppose we have the catalog data from star HD 103095 (Groombridge 1830) for epoch J2000.0, expressed in the ICRS. We find this by pulling up its entry in something like [SIMBAD](https://simbad.u-strasbg.fr/simbad/sim-id?Ident=Gmb%201830). We can pull in a library like [AstroAngles](https://github.com/JuliaAstro/AstroAngles.jl) to simplify some of the angle conversions.
+
+```@setup star
+using NOVAS
+```
+
+```@example star
+using AstroAngles
+
+ra = hms"11:52:58.7683801554"ha
+dec = dms"37:43:7.240082865"deg
+μα = 4002.567
+μδ = -5817.856
+plax = 108.9551
+v_rad = -98.008
+```
+
+Unlike the C version of NOVAS, we don't need to call `make_cat_entry` as we can make an instance of the struct at runtime.
+
+```@example star
+gmb_1830 = CatEntry("GMB 1830", "HD", 103095, ra, dec, μα, μδ, plax, v_rad)
+```
+
+Then, we call `app_star` to compute the apparent place of the star at a date `jd_tt`.

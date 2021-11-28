@@ -84,7 +84,7 @@ Computes the "complementary terms" of the equation of the equinoxes.
 function ee_ct(jd_high::T, jd_low::T; accuracy::Symbol=:full) where {T<:Real}
     t = ((jd_high - T0) + jd_low) / 36525.0
 
-    fa = @MVector zeros(T, 14)
+    fa = zeros(T, 14)
 
     if accuracy == :full
         # Fundamental arguments
