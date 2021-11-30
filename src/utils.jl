@@ -6,15 +6,15 @@ export fund_args, norm_ang, ee_ct
 Computes the fundamental arguments (mean elements) of the Sun and Moon.
 
 # Arguments
--`t::Real`: TDB time in Julian centuries since J2000.0
+- `t::Real`: TDB time in Julian centuries since J2000.0
 
 # Returns
 `[l,l′,F,D,Ω]` where
--`l`: Mean anomaly of the Moon
--`l′`: Mean anomaly of the Sun
--`F`: mean argument of the latitude of the Moon
--`D`: Mean elongation of the Moon from the Sun
--`Ω` Mean longitude of the Moon's ascending node
+- `l`: Mean anomaly of the Moon
+- `l′`: Mean anomaly of the Sun
+- `F`: mean argument of the latitude of the Moon
+- `D`: Mean elongation of the Moon from the Sun
+- `Ω` Mean longitude of the Moon's ascending node
 """
 function fund_args(t::T) where {T<:Real}
     l = 485868.249036 +

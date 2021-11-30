@@ -6,13 +6,13 @@ export iau2000a, nu2000k, fund_args
 Compute the forced nutation of the non-rigid earth based on the IAU 2000A nutation model.
 
 # Arguments
--`jd_high::Real`: High order part of the TT Julian date
--`jd_low::Real=0.0`: Low order part of the TT Julian date
+- `jd_high::Real`: High order part of the TT Julian date
+- `jd_low::Real=0.0`: Low order part of the TT Julian date
 
 # Return
 `(dpsi,deps)` where
--`dpsi`: Nutation (luni-solar + planetary) in longitude, in radians
--`deps`: Nutation (luni-solar + planetary) in obliquity, in radians
+- `dpsi`: Nutation (luni-solar + planetary) in longitude, in radians
+- `deps`: Nutation (luni-solar + planetary) in obliquity, in radians
 """
 function iau2000a(jd_high::Real, jd_low::Real=0.0)
     # Interval between fundamental epoch J2000.0 and given date
@@ -93,13 +93,13 @@ end
 Compute the forced nutation of the non-rigid earth based on the NU2000K nutation model.
 
 # Arguments
--`jd_high::Real`: High order part of the TT Julian date
--`jd_low::Real=0.0`: Low order part of the TT Julian date
+- `jd_high::Real`: High order part of the TT Julian date
+- `jd_low::Real=0.0`: Low order part of the TT Julian date
 
 # Return
 `(dpsi,deps)` where
--`dpsi`: Nutation (luni-solar + planetary) in longitude, in radians
--`deps`: Nutation (luni-solar + planetary) in obliquity, in radians
+- `dpsi`: Nutation (luni-solar + planetary) in longitude, in radians
+- `deps`: Nutation (luni-solar + planetary) in obliquity, in radians
 """
 function nu2000k(jd_high::Real, jd_low::Real=0.0)
     # Interval between fundamental epoch J2000.0 and given date

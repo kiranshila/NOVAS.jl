@@ -1,6 +1,7 @@
 export nutation_angles, mean_obliq, frame_tie, nutation, precession, cel_pole, e_tilt,
        ira_equinox, cio_location, cio_basis, era, tdb2tt, sidereal_time, wobble, spin,
-       ter2cel, OnSurface, refract, equ2hor, CatEntry, Object, SkyPos, Observer, app_star, InSpace
+       ter2cel, OnSurface, refract, equ2hor, CatEntry, Object, SkyPos, Observer, app_star,
+       InSpace, place
 
 """
     nutation_angles(t)
@@ -887,6 +888,77 @@ function show(io::IO, obs::Observer)
 end
 
 """
+    ephemeris(jd,cel_obj)
+
+Retrieves the position and velocity of a solar system body from a fundamental ephemeris.
+
+# Arguments
+- `jd::AbstractVector`: TDB Julian date split into two parts, where the sum is the TDB Julian date
+- `cel_obj::Object`: The celestial object of interest
+
+# Optional arguments
+- `origin::Symbol`: Either the solar system `:barycenter` or the center of mass of the `:sun`
+- `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
+"""
+function ephemersis(jd::AbstractVector, cel_obj::Object; origin::Symbol=:barycenter,
+                    accuracy::Symbol=:full)
+    @assert origin ∈ Set([:barycenter, :sun])
+    @assert accuracy ∈ Set([:full, :reduced])
+    # Acess the ephemeris of the correct type
+    if cel_obj.type == :major
+        # Get the position and velocity of a major planet, Pluto, Sun, or Moon.
+        # When high accuracy is specified, use function 'solarsystem_hp' rather
+        # than 'solarsystem'
+        if accuracy == :full
+            pos, vel = solarsystem_hp(jd, cel_obj.number; origin=origin)
+        elseif accuracy == :reduced
+            pos, vel = solarsystem(sum(jd), cel_obj.number; origin=origin)
+        end
+    elseif cel_obj.type == :minor
+        # Get the position and velocity of a minor planet
+    elseif cel_obj.type == :extrasolar
+        @error "Ephemersis only valid for major and minor planets"
+    end
+end
+
+"""
+     place(jd_tt,cel_obj,location,ΔT)
+
+Computes the apparent direction of a star or solar system body at a specified time an in a specified coordinate system.
+
+# Arguments
+- `jd_tt::Real`: TT Julian date for place
+- `cel_obj::Object`: The celestial object of interest
+- `location::Observer`: The location of the observer
+- `delta_t::Real`: Difference TT-UT1 at `jd_tt` in seconds
+
+# Optional arguments
+- `coord_sys::Symbol=:GCRS` Specifies the coordinate system of the output position.
+Either `:GCRS`, `:true` equator and equinox, true equator and `:CIO` of date, or `:astrometric` coordinates.
+- `accuracy::Symbol=:full`: Either `:full` or `:reduced` accuracy
+"""
+function place(jd_tt::Real, cel_object::Object, location::Observer, delta_t::Real;
+               coord_sys::Symbol=:GCRS, accuracy::Symbol=:full)
+    #FIXME
+    @assert coord_sys ∈ Set([:GCRS, :true, :CIO, :astrometric])
+    # Create Eath and Sun `objects`
+    earth = Object(:major, 3, "Earth")
+    sun = Object(:major, 10, "Sun")
+    if cel_object.type == :major && cel_object.numer == 3 && location.type != :space
+        @error "Earth can only be an observed object when `location` is a near-Earth satellite" location
+    end
+    # Get position and velocity of Earth (geocenter) and Sun
+    # Compute `jd_tdb`, the TDB Julian date corresponding to `jd_tt`
+    jd_tdb = jd_tt
+    x, secdif = tdb2tt(jd_tdb)
+    jd_tdb = jd_tt + secdif / 86400.0
+    # Get position and velocity of Earth w.r.t. barycenter of solar system in ICRS
+    return jd = [jd_tdb, 0.0]
+    #ephemeris(jd,earth,)
+
+end
+
+"""
     app_star(jd_tt,star)
 
 Computes the apparent place of a star at date `jd_tt`, givne its catalog
@@ -905,6 +977,7 @@ mean place, proper motion, parallax, and radial velocity.
 - `dec`: Apparent declination in degrees
 """
 function app_star(jd_tt::Real, star::CatEntry; accuracy::Symbol=:full)
+    #FIXME NOTEST
     # Set up a structure of type `Object` containing the star data
     # Located outside solar system
     cel_obj = Object(:extrasolar, star)

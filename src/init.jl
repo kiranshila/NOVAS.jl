@@ -40,6 +40,31 @@ register(DataDep("nu2000k",
                      rm(dir; recursive=true)
                      return rm("main.zip")
                  end))
-# Eagerly grab data deps
+
+# DataDep for JPL ephemerides
+register(DataDep("de440",
+                 """
+                 The JPL Planetary and Lunar Ephemerides DE440 and DE441
+                 Author: Ryan S. Park, William M. Folkner, James G. Williams, and Dale H. Boggs
+                 Website: https://iopscience.iop.org/article/10.3847/1538-3881/abd414
+
+                 The latest JPL ephemeris with fully consistent treatment of planetary and 
+                 lunar laser ranging data is DE440 (Park et al., 2021). The dynamical model
+                 for DE440 includes a frictional damping between the fluid core and the
+                 elastic mantle. This damping term is not suitable for extrapolation more
+                 than several centuries into the past. In order to cover a longer time span,
+                 the ephemeris DE441 was integrated without the lunar core/mantle damping term.
+                 The positions of the planets for DE441 agree with the positions on DE440 to 
+                 within one meter over the time covered by DE440. For the Moon DE441 differs
+                 from DE440 mainly in the estimated tidal damping term causing a difference
+                 in along-track position of the Moon of ~10 meters 100 years from the present
+                 and growing quadratically for times more than 100 years from present. 
+
+                 Citation: Ryan S. Park et al 2021 AJ 161 105
+                 """,
+                 "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de440s.bsp",
+                 "c1c7feeab882263fc493a9d5a5b2ddd71b54826cdf65d8d17a76126b260a49f2"))
+
+# Eagerly grab nutation deps
 datadep"2003IERSConventions"
 datadep"nu2000k"
