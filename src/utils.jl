@@ -32,17 +32,16 @@ function fund_args(t::T) where {T<:Real}
 end
 
 function read_nu2000k()
-    napl = readdlm(datadep"nu2000k/napl.csv", ',')
-    nals = readdlm(datadep"nu2000k/nals.csv", ',')
-    cpl = readdlm(datadep"nu2000k/cpl.csv", ',')
-    cls = readdlm(datadep"nu2000k/cls.csv", ',')
+    napl = readdlm(nu2000k("napl.csv"), ',')
+    nals = readdlm(nu2000k("nals.csv"), ',')
+    cpl = readdlm(nu2000k("cpl.csv"), ',')
+    cls = readdlm(nu2000k("cls.csv"), ',')
     return nals, cls, napl, cpl
 end
 
 function read_iau2000a()
-    lunisolar = readdlm(datadep"2003IERSConventions/chapter5/tab5.3a.txt"; comment_char='*',
-                        comments=true)[1:678, :]
-    planetary = readdlm(datadep"2003IERSConventions/chapter5/tab5.3b.txt"; skipstart=5)
+    lunisolar = readdlm(iers2003("tab5.3a.txt"); comment_char='*', comments=true)[1:678, :]
+    planetary = readdlm(iers2003("tab5.3b.txt"); skipstart=5)
     nals = lunisolar[1:678, 1:5]                      # [:l,:l′,:F,:D,:Ω]
     cls = lunisolar[1:678, [7, 8, 11, 9, 10, 13]] .* 1e4  # [:A, :A′, :A″, :B, :B′, :B″]
     napl = planetary[1:687, 2:15]                    # [:l, :l′, :F, :D, :Ω, :Me, :Ve, :E, :Ma, :J, :Sa, :U, :Ne, :pA]
@@ -51,8 +50,7 @@ function read_iau2000a()
 end
 
 function read_cterms()
-    cterms = readdlm(datadep"2003IERSConventions/chapter5/tab5.4.txt"; comment_char='j',
-                     comments=true, skipstart=50)
+    cterms = readdlm(iers2003("tab5.4.txt"); comment_char='j', comments=true, skipstart=50)
     ke0 = cterms[1:33, 4:17]
     ke1 = cterms[34, 4:17]
     se0 = cterms[1:33, 2:3] .* 1e-6

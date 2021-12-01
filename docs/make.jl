@@ -8,7 +8,7 @@ makedocs(; modules=[NOVAS], authors="Kiran Shila <me@kiranshila.com> and contrib
          sitename="NOVAS.jl",
          format=Documenter.HTML(; prettyurls=get(ENV, "CI", "false") == "true",
                                 canonical="https://kiranshila.github.io/NOVAS.jl",
-                                assets=String[]),
+                                assets=String["https://cdn.plot.ly/plotly-2.6.3.min.js"]),
          pages=["Home" => "index.md", "Examples" => "examples.md",
                 "Benchmarks" => "benchmarks.md", "API" => "api.md"])
 
