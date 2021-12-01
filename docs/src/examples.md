@@ -74,29 +74,11 @@ Then, we call `app_star` to compute the apparent place of the star at a date `jd
 
 ## Solar System Diagram
 
-```@setup orbits
-using NOVAS
-```
-
-In this example, we will play with the ephemeris data from JPL by plotting some trajectories.
-
-First, we will set up the plotting system
-
 ```@example orbits
-using Plots, PlotThemes
-plotlyjs()
-plot3d(; grid=false, background_color=:black, axis=false);
-```
+using PlotlyJS, NOVAS
 
-Next, we have to register which ephemeris dataset we will use.
-
-```@example orbits
 register_spk!(de440())
-```
 
-Then, we will use NOVAS to get the positions of each planet, with respects to the solar system barycenter
-
-```@example orbits
 days = 60 * 60 * 24
 year = days * 365
 years = 0:days:(2year)
@@ -105,22 +87,31 @@ get_planet_position(planet) = hcat((first.(state.(years, planet, 0)))...)
 
 planets = ["Mercury", "Venus", "Earth", "Mars"]
 
+traces = GenericTrace[]
+
+trace_orbit(x, y, z, name) = scatter3d(; x=x, y=y, z=z, mode="lines", name=name)
+
 # Plot the Sun!
-scatter!([0], [0], [0]; label="Solar System Barycenter", markersize=3, markershape=:diamond,
-         markercolor=:yellow)
+push!(traces,
+      scatter3d(; x=[0], y=[0], z=[0], name="Solar System Barycenter",
+                marker=attr(; color="yellow", size=5, symbol="diamond")))
 
 for (i, planet) in enumerate(planets)
     position = get_planet_position(i)
-    plot3d!(position[1, :], position[2, :], position[3, :]; label=planet)
+    push!(traces, trace_orbit(position[1, :], position[2, :], position[3, :], planet))
 end
-```
 
-It might be cool to see our moon's trajectory as well, but its record is stored as a vector from the Earth-Moon barycenter to the Moon. We can just add these tip to tail to get the Moon's position relative to the solar system's barycenter.
-
-```@example orbits
 # Plot the moon
 moon_from_earth = hcat((first.(state.(years, 301, 3)))...)
 earth = get_planet_position(3)
 moon = moon_from_earth + earth
-plot3d!(moon[1, :], moon[2, :], moon[3, :]; label="Luna")
+push!(traces, trace_orbit(moon[1, :], moon[2, :], moon[3, :], "Luna"))
+
+layout = Layout(; plot_bgcolor="black", paper_bgcolor="black",
+                legend=attr(; font=attr(; color="white")), font=attr(; color="white"),
+                scene=attr(; xaxis=attr(; visible=false), yaxis=attr(; visible=false),
+                           zaxis=attr(; visible=false)))
+
+plot(traces, layout)
+
 ```
