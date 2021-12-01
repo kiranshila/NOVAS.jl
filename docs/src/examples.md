@@ -74,8 +74,23 @@ Then, we call `app_star` to compute the apparent place of the star at a date `jd
 
 ## Solar System Diagram
 
+```@setup orbits
+using NOVAS
+function documenter_plotly(plt)
+    uuid = UUIDs.uuid4()
+    html = """
+        <div id=\"$(uuid)\"></div>
+        <script>
+        PLOT = document.getElementById('$(uuid)');
+        Plotly.newPlot(PLOT, $(string(plt.data)), $(string(plt.layout)), {scrollZoom: true});
+        </script>
+    """
+    HTML(html)
+end
+```
+
 ```@example orbits
-using PlotlyJS, NOVAS
+using PlotlyJS
 
 register_spk!(de440())
 
@@ -112,6 +127,5 @@ layout = Layout(; plot_bgcolor="black", paper_bgcolor="black",
                 scene=attr(; xaxis=attr(; visible=false), yaxis=attr(; visible=false),
                            zaxis=attr(; visible=false)))
 
-plot(traces, layout)
-
+documenter_plotly(plot(traces, layout))
 ```
