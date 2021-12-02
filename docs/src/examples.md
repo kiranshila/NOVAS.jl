@@ -1,3 +1,12 @@
+```@raw html
+<script>
+    require.config({
+        paths: { plotly: 'https://cdn.plot.ly/plotly-2.6.3.min' },
+        shim: { plotly: { exports: 'plotly' } }
+    });
+</script>
+```
+
 # Examples
 
 ## Calculating Sidereal Time
@@ -74,7 +83,9 @@ Then, we call `app_star` to compute the apparent place of the star at a date `jd
 
 ## Solar System Diagram
 
-```@example orbits
+In this example, we will play around with visualizing some of the JPL planetary ephemeris data. To do so, and to have a nice interactive plot, we will pull in PlotlyJS.
+
+```@setup orbits
 import UUIDs
 using NOVAS, PlotlyJS
 
@@ -83,49 +94,61 @@ function documenter_plotly(plt)
     html = """
         <div id=\"$(uuid)\"></div>
         <script>
-        PLOT = document.getElementById('$(uuid)');
-        Plotly.newPlot(PLOT, $(string(plt.plot.data)), $(string(plt.plot.layout)), {scrollZoom: true});
+        require(['plotly'], function (plotly) {
+            PLOT = document.getElementById('$(uuid)');
+            console.log(plotly);
+            plotly.newPlot(PLOT, $(string(plt.plot.data)), $(string(plt.plot.layout)), { scrollZoom: true });
+        });
         </script>
     """
     HTML(html)
 end
+```
 
+First, we need to register which ephemeris kernel we want to use with the global registry. We'll use the latest DE440 planetary kernel.
+
+```@example orbits
 register_spk!(de440())
+```
 
+Then, we will write a utility function to grab the position vector from the NOVAS [`state`](@ref) function as well as calculate the time span we want to look at, say two years from J2000. Notice we can just use broadcasting here over the range.
+
+```@example orbits
 days = 60 * 60 * 24
 year = days * 365
-years = 0:days:(2year)
+years = 0:3days:(2year)
 
 get_planet_position(planet) = hcat((first.(state.(years, planet, 0)))...)
+```
 
+Now, we can simply call that function for each planet we're interested in. Included is a small utility function to work with the PlotlyJS API.
+
+```@example orbits
 planets = ["Mercury", "Venus", "Earth", "Mars"]
-
 traces = GenericTrace[]
-
 trace_orbit(x, y, z, name) = scatter3d(; x=x, y=y, z=z, mode="lines", name=name)
-
-# Plot the Sun!
-push!(traces,
-      scatter3d(; x=[0], y=[0], z=[0], name="Solar System Barycenter",
-                marker=attr(; color="yellow", size=5, symbol="diamond")))
-
 for (i, planet) in enumerate(planets)
     position = get_planet_position(i)
     push!(traces, trace_orbit(position[1, :], position[2, :], position[3, :], planet))
 end
+```
 
-# Plot the moon
-moon_from_earth = hcat((first.(state.(years, 301, 3)))...)
-earth = get_planet_position(3)
-moon = moon_from_earth + earth
-push!(traces, trace_orbit(moon[1, :], moon[2, :], moon[3, :], "Luna"))
+To make things more interesting, we can plot the solar system barycenter, as a point of reference
 
+```@example orbits
+push!(traces,
+      scatter3d(; x=[0], y=[0], z=[0], name="Solar System Barycenter",
+                marker=attr(; color="yellow", size=5, symbol="diamond")))
+nothing #hide
+```
+
+Now, we just setup our Plotly layout and look at the pretty curves!
+
+```@example orbits
 layout = Layout(; plot_bgcolor="black", paper_bgcolor="black",
                 legend=attr(; font=attr(; color="white")), font=attr(; color="white"),
                 scene=attr(; xaxis=attr(; visible=false), yaxis=attr(; visible=false),
                            zaxis=attr(; visible=false)))
-
-
 plt = plot(traces, layout)
-documenter_plotly(plt)
+documenter_plotly(plt) #hide
 ```

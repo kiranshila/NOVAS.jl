@@ -1,8 +1,7 @@
 # This is the interface to the JPL ephemerides for use with eph_manager
 # The origin of the source here is `solsys1.c`, as that is what is bundled with pyNOVAS
 
-function planet_ephemeris(tjd::AbstractVector, target, center) 
-end
+function planet_ephemeris(tjd::AbstractVector, target, center) end
 
 """
     solarsystem(tjd,body)
